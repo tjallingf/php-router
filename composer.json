@@ -1,0 +1,13 @@
+{
+    "name": "tjallingf/php-router",
+    "description": "A PHP router featuring routes, views, components.",
+    "license": "Apache-2.0",
+    "type": "library",
+    "require": {},
+    "autoload": {
+        "psr-4": {
+            "Router\\": "src/Router",
+            "PHPHtmlParser\\": "src/paquettg/php-html-parser"
+        }
+    }
+}
