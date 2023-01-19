@@ -64,27 +64,31 @@
             } else {
                 $message = $error;
             }
+
+            return $this->json(['error' => $message])
+                ->status($status_code)
+                ->end();
             
-            // Get the name of the error view
-            $view_name = Config::get('router.errorView');
+            // // Get the name of the error view
+            // $view_name = Config::get('router.errorView');
 
-            // Respond with an error message if the error view can not be found
-            if(!ViewController::exists($view_name)) {
-                return $this->json(['error' => $message])
-                            ->status($status_code)
-                            ->end();
-            }
+            // // Respond with an error message if the error view can not be found
+            // if(!ViewController::exists($view_name)) {
+            //     return $this->json(['error' => $message])
+            //                 ->status($status_code)
+            //                 ->end();
+            // }
 
-            // Get the error view
-            $view = ViewController::find($view_name, [
-                'message'     => $message,
-                'status_code' => $status_code
-            ]);
+            // // Get the error view
+            // $view = ViewController::find($view_name, [
+            //     'message'     => $message,
+            //     'status_code' => $status_code
+            // ]);
 
-            // Respond with the error view
-            return $this->send($view)
-                        ->status($status_code)
-                        ->end();
+            // // Respond with the error view
+            // return $this->send($view)
+            //             ->status($status_code)
+            //             ->end();
         }
 
         public function redirect(string $url, bool $ignore_app_base_url = false): self {

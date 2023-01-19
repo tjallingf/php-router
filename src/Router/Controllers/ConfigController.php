@@ -33,5 +33,7 @@
             self::edit('router.baseUrl', strlen($formatted_base_url) > 1 ? $formatted_base_url : '');
         }
 
-        public static function populate() {}
+        public static function index(): ?array {
+            return self::$data;
+        }
     }

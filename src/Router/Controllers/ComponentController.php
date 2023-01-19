@@ -29,7 +29,5 @@
             $model = static::MODEL;
             return new $model(self::getPath($name), $data);
         }
-
-        public static function populate() {}
     }
 ?>

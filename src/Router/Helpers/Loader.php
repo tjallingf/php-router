@@ -44,7 +44,7 @@
 
         public static function loadRouter() {
             // Load routes
-            MwController::find('RouteController')::populate();
+            MwController::find('RouteController')::index();
 
             // If a request was sent, handle it
             if(isset($_SERVER['REQUEST_METHOD']) && isset($_SERVER['REQUEST_URI'])) {

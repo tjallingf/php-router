@@ -3,19 +3,19 @@
 
     use Router\Lib;
 
-    class Controller {
+    abstract class Controller {
         public static string $dir;
         protected static array $data = [];
 
         public static function index() {
-            if(!isset(static::$data)) 
-                static::$data = static::populate();
-
-            return static::$data;
+            // Code to fetch data should be put here
+            // ...
+            
+            return self::$data;
         }
 
         public static function store(array $data) {
-            self::$data = (array) $data;
+            static::$data = (array) $data;
         }
 
         public static function find(string $item) {
@@ -27,6 +27,4 @@
             static::index();
             return Lib::arraySetByPath(static::$data, $item, $props);
         }
-
-        public static function populate() {}
     }

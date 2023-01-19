@@ -3,11 +3,9 @@
 
     use Router\Controllers\Controller;
     use Router\Lib;
-    use Router\Controllers\ViewController;
     use Router\Controllers\MiddlewareController as MwController;
     use Router\Models\UrlModel;
     use Router\Models\RouteModel;
-    use Router\Helpers\Config;
     use Router\Helpers\Response;
 
     class RouteController extends Controller {
@@ -15,15 +13,16 @@
         public static Response $res;
 
         public static function create(RouteModel $route) {
-            array_push(static::$data, $route);
+            array_push(self::$data, $route);
         }
 
-        public static function populate() {
-            Lib::requireAll(lib::joinPaths(Lib::getRootDir(), self::$dir));
-
-            self::$res = MwController::construct('Response');
+        public static function index(): ?array {
+            if(empty($data)) {
+                Lib::requireAll(lib::joinPaths(Lib::getRootDir(), self::$dir));
+                self::$res = MwController::construct('Response');
+            }
             
-            return [];
+            return self::$data;
         }
 
         public static function findRoute(string $method, UrlModel $url) {
