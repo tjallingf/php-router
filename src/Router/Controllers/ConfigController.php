@@ -29,8 +29,8 @@
 
         public static function store(array $config) {
             self::$data = array_replace_recursive(self::DEFAULT, $config);
-            self::edit('router.baseUrl', 
-                '/'.trim(Lib::joinPaths(self::find('router.baseUrl')), '/'));
+            $formatted_base_url = '/'.trim(Lib::joinPaths(self::find('router.baseUrl')), '/');
+            self::edit('router.baseUrl', strlen($formatted_base_url) > 1 ? $formatted_base_url : '');
         }
 
         public static function populate() {}

@@ -15,19 +15,27 @@
         public static function getHeadCode(): string {
             switch(Config::get('development')) {
                 case true:
-                    return self::getOne('dev_vite_refresh_runtime');
+                    if(count(App::$includedScripts) || count(App::$includedStylesheets))
+                        return self::getOne('dev_vite_refresh_runtime');
+                    break;
                 default:
                     return self::getOne('vite_plugin_legacy_head');
             }
+
+            return '';
         }
 
         public static function getBodyCode(): string {
             switch(Config::get('development')) {
                 case true:
-                    return self::getOne('dev_check_client_status');
+                    if(count(App::$includedScripts) || count(App::$includedStylesheets))
+                        return self::getOne('dev_check_client_status');
+                    break;
                 default:
                     return self::getOne('vite_plugin_legacy_body');
             }
+
+            return '';
         }
 
         protected static function getMany(array $names) {

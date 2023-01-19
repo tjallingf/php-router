@@ -87,11 +87,11 @@
                         ->end();
         }
 
-        public function redirect(string $url, bool $ignore_APP_base_url = false): self {
+        public function redirect(string $url, bool $ignore_app_base_url = false): self {
             $url = trim($url);
             $is_relative = !str_contains(substr($url, 0, 8), '://');
 
-            if($is_relative && !$ignore_APP_base_url)
+            if($is_relative && !$ignore_app_base_url)
                 $url = Lib::joinPaths(Config::get('router.baseUrl'), $url);
 
             $this->header('location', $url, true);

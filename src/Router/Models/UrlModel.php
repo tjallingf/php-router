@@ -54,9 +54,10 @@
                 return true;
                 
             // Remove the query string
-            $value = strtok($value, '?');
+            if(strlen($value) > 0)
+                $value = strtok($value, '?');
 
-            if(!$value)
+            if(!isset($value) || $value === false)
                 return false;
                 
             if(isset($template_part['validation']['expect_value']) &&
