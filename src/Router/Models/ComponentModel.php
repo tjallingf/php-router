@@ -63,7 +63,7 @@
             }
         }
 
-        function parseComponentNode($node) {
+        public static function parseComponentNode($node) {
             $name = $node->tag->name();
             $props = self::getProps($node);
 

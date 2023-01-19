@@ -97,7 +97,7 @@
             return $dist_filename;
         }
         
-        protected function createNodeString(string $node, array $attributes = [], string $content = ''): string {
+        protected static function createNodeString(string $node, array $attributes = [], string $content = ''): string {
             $node_string = "<$node ";
 
             foreach ($attributes as $key => $value) {

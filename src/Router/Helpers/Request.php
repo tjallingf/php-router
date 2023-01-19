@@ -38,7 +38,7 @@
             $this->method = $method;
             $this->url = $url;
 
-            $this->headers = getallheaders() ?? [];
+            $this->headers = array_change_key_case(getallheaders() ?? [], CASE_LOWER);
             $this->params = $this->route->resolveUrlParameters($url);
             $this->query = $_GET;
             $this->body = $this->parseBody(file_get_contents('php://input'));
@@ -65,25 +65,39 @@
         /**
          * Gets a specific request header by name.
          * @param string name - The name of the request header to get.
-         * @return any - The value of the request header, or null if it is not set.
+         * @return string|null - The value of the request header, or null if it is not set.
          */
-        public function getHeader(string $name) {
-            return @$this->headers[trim(strtolower($name))];
+        public function getHeader(string $name): string|null {
+            $value = @$this->headers[trim(strtolower($name))];
+            return is_null($value) ? null : trim($value);
         }
 
         /**
          * Attempts to parse the request body.
          * @param string name - The name of the query parameter to get.
-         * @return any - The value of the query parameter, or null if it is not set.
+         * @return any - The value of the request body, or null if it is not set.
          */
         protected function parseBody(string $body) {
-            if(empty($body)) return '';
+            if(empty($body)) return null;
 
-            switch($this->getHeader('content-type')) {
+            $content_type = strtok($this->getHeader('content-type'), ';');
+
+            switch($content_type) {
                 case 'application/json':
                     return @json_decode($body, true);
+                case 'application/x-www-form-urlencoded':
+                    @parse_str($body, $result);
+                    return $result;
                 default:
-                    return '';
+                    $json_decoded_body = @json_decode($body, true);
+                    if(json_last_error() == JSON_ERROR_NONE)
+                        return $json_decoded_body;
+
+                    @parse_str($body, $result);
+                    if(!is_null($result))
+                        return $result;
+
+                    return null;
             }
         }
     }
