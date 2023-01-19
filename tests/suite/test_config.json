@@ -1,0 +1,7 @@
+{
+    "name": "Test Suite",
+    "client": {
+        "rootDir": "client",
+        "srcDir": "src/"
+    }
+}

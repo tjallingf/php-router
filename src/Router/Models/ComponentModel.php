@@ -1,81 +1,105 @@
 <?php
     namespace Router\Models;
 
-    use PHPHtmlParser\Dom;
-    use PHPHtmlParser\Dom\Node\TextNode;
+    use Router\Helpers\Dom;
     use Router\Controllers\ComponentController;
-    use PHPHtmlParser\Options;
+    use PHPHtmlParser\Dom\Node\HtmlNode;
+    use PHPHtmlParser\Dom\Node\AbstractNode;
+    use Exception;
 
     class ComponentModel {
         protected array $data;
         protected string $path;
 
-        function __construct(string $path, array $data = []) {
+        public function __construct(string $path, array $data = []) {
             $this->path = $path;
             $this->data = $data; 
         }
 
-        function render(): string {
-            // The $_DATA variable can be used inside the component
-            $_DATA = $this->data;
+        public function render(): string {
+            $_PROPS = $this->data;
 
             ob_start();
             include($this->path);
-            $output = ob_get_contents();
-            ob_end_clean();
+            $output = ob_get_clean();
 
-            $parsed_output = $this->parseComponents($output);
+            $dom = $this->parseOutput($output);
 
-            return $parsed_output;
+            return trim($dom->__toString());
         }
 
-        function parseComponents(string $output) {
-            // If the output doesn't contain any tag names starting with a
-            // capital letter, return the plain output.
-            preg_match('/<\s*[A-Z]{1}\w*/', $output, $matches);
-            if(!count($matches)) return $output;
+        public static function parseOutput(string $output): HtmlNode {
+            // // If the output doesn't contain any tag names starting with a
+            // // capital letter, return the plain output.
+            // preg_match('/<\s*[A-Z]{1}\w*/', $output, $matches);
+            // if(!count($matches)) return $output;
 
-            $dom = new Dom();
-            $dom->setOptions((new Options())->setCleanupInput(false));
-            $dom->loadStr($output);
-            self::parseNode($dom->find('html'));
-
-            return $dom->__toString();
-        }
-
-        function parseNode($parent_node) {
-            if($parent_node instanceof TextNode)
-                return $parent_node;
-
-            $children = $parent_node->getChildren();
+            $dom = new Dom($output);
             
-            foreach ($children as $child_node) {
-                $child_node = self::parseNode($child_node);
+            if($dom->root instanceof HtmlNode) 
+                self::parseChildNodes($dom->root);
 
-                // Check if the tag name starts with a capital letter
-                if(!ctype_upper(substr($child_node->tag->name(), 0, 1))) continue;
+            return $dom->root;
+        }
 
-                $dom = new Dom();
-                $dom->setOptions((new Options())->setCleanupInput(false));
-                $dom->loadStr(self::parseComponentNode($child_node));
-                
-                $new_content = (count($dom->getChildren()) 
-                    ? $dom->firstChild()->getParent() 
-                    : new TextNode(''));
+        public static function parseChildNodes(HtmlNode &$parent_node): void {
+            $children = $parent_node->getChildren();
 
-                $parent_node->replaceChild($child_node->id(), $new_content);
+            foreach ($children as $child) {
+                if($child instanceof HtmlNode)
+                    self::parseChildNodes($child);
+
+                // Return if the tag name does not start with a capital letter
+                if(!ctype_upper(substr($child->tag->name(), 0, 1))) 
+                    continue;
+
+                $component_output_node = (new Dom(self::parseComponentNode($child)))->root;
+
+                // Return if the component did not output a node
+                if(!$component_output_node instanceof AbstractNode) 
+                    continue;
+
+                $parent_node->replaceChild($child->id(), $component_output_node);
             }
-
-            return $parent_node;
         }
 
         function parseComponentNode($node) {
             $name = $node->tag->name();
-            $data = $node->getAttributes();
-            $data['children'] = $node->innerHtml;
+            $props = self::getProps($node);
 
-            $component = ComponentController::find($name, $data);
+            $component = ComponentController::find($name, $props);
+
+            if($component instanceof Exception)
+                return '<span>'.$component->getMessage().'</span>';
 
             return $component->render();
+        }
+
+        /**
+         * Finds the first child that is of type HtmlNode.
+         */
+        public static function getMainChild(HtmlNode $node) {
+            foreach ($node->getChildren() as $child) {
+                if($child instanceof HtmlNode)
+                    return $child;
+            }
+        }
+
+        /**
+         * Creates a properties array for a given node.
+         */
+        public static function getProps(HtmlNode $node) {
+            $props = $node->getAttributes();
+
+            foreach ($props as $key => $value) {
+                // Attributes with no value should be considered boolean
+                // values, assign them the the value of 'true'.
+                if(is_null($value)) 
+                    $props[$key] = true;
+            }
+
+            $props['children'] = $node->innerHtml;
+
+            return $props;
         }
     }

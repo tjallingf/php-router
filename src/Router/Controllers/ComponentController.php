@@ -3,10 +3,12 @@
 
     use Router\Models\ComponentModel;
     use Router\Controllers\Controller;
+    use Router\Lib;
+    use Exception;
 
     class ComponentController extends Controller {
+        public static string $dir = '/resources/components';
         const TYPE = 'component';
-        const DIR = 'components';
         const MODEL = ComponentModel::class;
 
         public static function exists(string $name): bool {
@@ -14,21 +16,20 @@
         }
 
         protected static function getPath(string $name): string {
-            // return @self::index()[$name];
-            return root_dir().'/resources/'.static::DIR."/$name.php";
-        }
-
-        public static function populate() {
-            $files = glob(root_dir().'/resources/'.static::DIR."/*.{php,html}", GLOB_BRACE);
-            var_dump($files);
+            $filename = lib::joinPaths(Lib::getRootDir(), static::$dir, $name);
+            
+            if(file_exists("$filename.php")) return "$filename.php";
+            return "$filename.html";
         }
 
         public static function find(string $name, array $data = []) {
             if(!self::exists($name))
-                throw new \Exception('Cannot find '.self::TYPE. " '$name'.");
+                return new Exception('Cannot find '.static::TYPE. " '$name'.",);
 
-            $model = self::MODEL;
+            $model = static::MODEL;
             return new $model(self::getPath($name), $data);
         }
+
+        public static function populate() {}
     }
 ?>

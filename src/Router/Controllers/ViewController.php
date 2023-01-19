@@ -5,8 +5,8 @@
     use Router\Models\ViewModel;
 
     class ViewController extends ComponentController {
+        public static string $dir = '/resources/views';
         const TYPE = 'view';
-        const DIR = 'views';
         const MODEL = ViewModel::class;
     }
 ?>

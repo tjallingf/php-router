@@ -2,82 +2,151 @@
     namespace Router\Helpers;
 
     use Router\Models\ComponentModel;
+    use Router\Controllers\ViewController;
     use Router\Models\ViewModel;
+    use Router\Lib;
+    use Exception;
 
     class Response {
         const BODY_SEPERATOR = "\r\n";
 
-        protected array $headers = [];
-        protected array $body = [];
-        protected int $statusCode = 200;
+        protected static array $headers;
+        protected static array $body;
+        protected static int $statusCode;
+        protected static bool $wasEnded;
 
-        function send($data): string {
-            if(is_array($data))
-                return $this->json($data);
-            
-            if($data instanceof ViewModel || $data instanceof ComponentModel)
-                $data = $data->render();
-
-            array_push($this->body, $data);
-
-            return __CLASS__;
+        function __construct() {
+            $this->reset();
         }
 
-        function json($data): string {
+        function send($data): self {
+            if(is_array($data))
+                return $this->json($data);
+
+            if($data instanceof ViewModel || $data instanceof ComponentModel)
+                $data = $data->render();
+            
+            if($data instanceof Exception)
+                return $this->sendError($data);
+
+            array_push(self::$body, $data);
+
+            return $this;
+        }
+
+        function json($data): self {
             $this->send(json_encode($data));
             $this->header('content-type', 'application/json');
 
-            return __CLASS__;
+            return $this;
         }
 
         function status(int $status_code) {
-            $this->statusCode = $status_code;
+            self::$statusCode = $status_code;
 
-            return __CLASS__;
+            return $this;
         }
 
-        function sendError($error, int $status_code = null) {
-            if($error instanceof \Exception) {
+        function getStatus() {
+            return self::$statusCode;
+        }
+
+        function getBody(): string {
+            return implode(self::BODY_SEPERATOR, self::$body);
+        }
+
+        function sendError($error, int $status_code = 0) {
+            if($error instanceof Exception) {
                 $message = $error->getMessage();
-                $status_code = !isset($status_code) && $error->getCode() > 0 
+                $status_code = $status_code === 0 && $error->getCode() > 0 
                     ? $error->getCode() 
                     : $status_code;
             } else {
                 $message = $error;
             }
-
-            // Use status code 500 (Server Error) by default
-            $status_code = $status_code ?? 500;
-
-            if($status_code) $this->status($status_code);
-            $this->send(['error' => $message]);
             
-            $this->end();
+            // Get the name of the error view
+            $view_name = Config::get('router.errorView');
 
-            return __CLASS__;
+            // Respond with an error message if the error view can not be found
+            if(!ViewController::exists($view_name)) {
+                return $this->json(['error' => $message])
+                            ->status($status_code)
+                            ->end();
+            }
+
+            // Get the error view
+            $view = ViewController::find($view_name, [
+                'message'     => $message,
+                'status_code' => $status_code
+            ]);
+
+            // Respond with the error view
+            return $this->send($view)
+                        ->status($status_code)
+                        ->end();
         }
 
-        public function header(string $key, string $value, bool $replace = false): string {
+        public function redirect(string $url, bool $ignore_APP_base_url = false): self {
+            $url = trim($url);
+            $is_relative = !str_contains(substr($url, 0, 8), '://');
+
+            if($is_relative && !$ignore_APP_base_url)
+                $url = Lib::joinPaths(Config::get('router.baseUrl'), $url);
+
+            $this->header('location', $url, true);
+            $this->status(302);
+            
+            return $this;
+        }
+
+        public function header(string $key, string $value, bool $replace = false): self {
             $key = strtolower(trim($key));
             
-            if(!isset($this->headers[$key]) || $replace)
-                $this->headers[$key] = $value;
+            if(!isset(self::$headers[$key]) || $replace)
+                self::$headers[$key] = $value;
 
-            return __CLASS__;
+            return $this;
         }
 
-        public function end(): string {
-            // Send headers
-            foreach ($this->headers as $key => $value) {
-                header("{$key}: {$value}", true);
+        public function catchNotFound($data, string $message = 'Not found') {
+            if(is_null($data)) {
+                $this->sendError($message);
+                return null;
+            }
+
+            return $data;
+        }
+
+        public function end(): self {
+            if(self::$wasEnded) return $this;
+
+            if(!headers_sent()) {
+                // Disable the 'X-Powered-By: PHP' header
+                header_remove('x-powered-by');
+
+                // Send headers
+                foreach (self::$headers as $key => $value) {
+                    header("{$key}: {$value}", true);
+                }
             }
 
             // Send status code
-            http_response_code($this->statusCode);
+            http_response_code(self::$statusCode);
 
             // Send body
-            echo(implode(self::BODY_SEPERATOR, $this->body));
+            echo($this->getBody());
 
-            return __CLASS__;
+            self::$wasEnded = true;    
+            return $this;
+        }
+
+        protected function reset(): self {
+            self::$headers = [];
+            self::$body = [];
+            self::$statusCode = 200;
+            self::$wasEnded = false;
+
+            return $this;
         }
     }

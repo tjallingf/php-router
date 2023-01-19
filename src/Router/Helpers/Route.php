@@ -1,97 +1,30 @@
 <?php
     namespace Router\Helpers;
 
-    use Router\Controllers\MiddlewareController;
-    use Router\Models\UrlModel;
     use Router\Models\UrlTemplateModel;
-    use Router\Controllers\ViewController;
+    use Router\Models\RouteModel;
+    use Router\Controllers\RouteController;
+    use Router\Helpers\Config;
+    use Router\Lib;
 
     class Route {
-        protected static $listeners = [];
-
-        public static function listen(string $method, string $url_template, callable $callback) {
+        public static function listen(string $method, string $url_template_path, callable $callback) {
+            // Transform method
             $method = trim(strtolower($method));
 
-            array_push(self::$listeners, [
-                'method' => $method,
-                'template' => new UrlTemplateModel($url_template),
-                'callback' => $callback
-            ]);
-        }
-        
-        protected static function answerListener(array $listener, UrlModel $url, string $method) {
-            $res = MiddlewareController::construct('Response');
-
-            $req = MiddlewareController::construct('Request', [
-                $listener, $url, $method
-            ]);
-
-            $next = function (...$args) use ($res) { 
-                return $res->sendError(...$args); 
-            };
-
-            // Call the listener callback
-            try {
-                call_user_func(
-                    $listener['callback'], 
-                    $req, $res, $next
-                );
-            } catch(\Exception $e) {
-                return $res->sendError($e);
-            }
-
-            return $res->end();
-        }
-        
-        protected function answerError(int $status_code = 500, string $message = '') {
-            $res = MiddlewareController::construct('Response');
-
-            $view_name = "error/$status_code";
-
-            // Respond with an error message if no corresponding view can be found
-            if(!ViewController::exists($view_name)) 
-                return $res->sendError($message, $status_code);
-
-            // Respond with an error view
-            $res->send(ViewController::find($view_name));
-
-            return $res->end();
-        }
-
-        public static function handleRequest(string $method, string $path) {
-            $method = trim(strtolower($method));
-            $url = new UrlModel($path);
-
-            // Find listener
-            $selected_listener = self::findListener($method, $url);
+            // Prepend 'router.baseUrl' to url template path
+            $url_template_path = '/'.trim(Lib::joinPaths(Config::get('router.baseUrl'), $url_template_path), '/');
             
-            // Throw 404 error if no listener was found
-            if(!$selected_listener)
-                return self::answerError(404, 'Route not found.');
+            $url_template = new UrlTemplateModel($url_template_path);
 
-            return self::answerListener($selected_listener, $url, $method);
-        }
-
-        protected function findListener(string $method, UrlModel $url) {
-            $selected_listener = false;
-
-            foreach (self::$listeners as $listener) {
-                if($listener['method'] != $method && $listener['method'] != 'all')
-                    continue;
-                
-                if(!$url->matchesTemplate($listener['template']))
-                    continue;
-
-                $selected_listener = $listener;
-                break;
-            }
-
-            return $selected_listener;
+            RouteController::create(new RouteModel(
+                $method, $url_template, $callback
+            ));
         }
 
         /* Aliases for self::listen() */
-        public static function all(string $path, callable $callback) {
-            return self::listen('all', $path, $callback);
+        public static function any(string $path, callable $callback) {
+            return self::listen('any', $path, $callback);
         }
         
         public static function delete(string $path, callable $callback) {

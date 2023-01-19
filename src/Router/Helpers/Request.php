@@ -1,78 +1,89 @@
 <?php
     namespace Router\Helpers;
 
-    use Router\Helpers\Config;
     use Router\Models\UrlModel;
-    use Router\Controllers\MiddlewareController;
-    use Router\Controllers\LocaleController;
+    use Router\Models\RouteModel;
 
     class Request {
-        protected array $listener;
+        protected RouteModel $route;
         protected UrlModel $url;
-        public array $body = [];
-        public array $params = [];
-        public string $method;
-        public array $user;
 
-        public function init(array $listener, UrlModel $url, string $method) {
-            $this->listener = $listener;
+        /**
+         * The body that was sent with the request, as parsed with Request::parseBody().
+         */
+        public $body;
+
+        /**
+         * The url parameters.
+         */
+        public array $params;
+
+        /**
+         * The query parameters that were sent with the request.
+         */
+        public array $query;
+
+        /**
+         * The headers that were sent with the request.
+         */
+        public array $headers;
+
+        /** 
+         * The method that was used for the request, in lowercase (get, post, put, etc.).
+         */
+        public string $method;
+
+        public function __construct(RouteModel $route, string $method, UrlModel $url) {
+            $this->route = $route;
+            $this->method = $method;
             $this->url = $url;
 
-            $this->body = $_POST ?? $this->parseBody(file_get_contents('php://input'));
-            $this->params = $this->url->parseParameters($this->listener['template']);
-            $this->method = $method;
-
-            if(Config::get('controllers.user.enabled'))
-                $this->user = @MiddlewareController::find('User')::find($_SESSION['user_username'] ?? '') 
-                    ?? @MiddlewareController::find('User')::find('__GUEST__') 
-                    ?? [];
-
-            if(Config::get('controllers.locale.enabled'))
-                LocaleController::select(@$this->user['settings']['locale'] ?? '');
-
-            return __CLASS__;
+            $this->headers = getallheaders() ?? [];
+            $this->params = $this->route->resolveUrlParameters($url);
+            $this->query = $_GET;
+            $this->body = $this->parseBody(file_get_contents('php://input'));
         }
 
-        public function getParams() {
-            return $this->params;
+        /**
+         * Gets a specific url parameter by name.
+         * @param string name - The name of the url parameter to get.
+         * @return string|null - The value of the query parameter, or null if it is not set.
+         */
+        public function getParam(string $name) {
+            return @$this->params[trim($name)];
         }
 
-        public function getParam(string $key) {
-            return @$this->getParams()[$key];
+        /**
+         * Gets a specific query parameter by name.
+         * @param string name - The name of the query parameter to get.
+         * @return any - The value of the query parameter, or null if it is not set.
+         */
+        public function getQuery(string $name) {
+            return @$this->query[trim($name)];
         }
 
-        public function getMethod() {
-            return $this->method;
+        /**
+         * Gets a specific request header by name.
+         * @param string name - The name of the request header to get.
+         * @return any - The value of the request header, or null if it is not set.
+         */
+        public function getHeader(string $name) {
+            return @$this->headers[trim(strtolower($name))];
         }
 
-        public function getBody() {
-            return $this->body;
-        }
+        /**
+         * Attempts to parse the request body.
+         * @param string name - The name of the query parameter to get.
+         * @return any - The value of the query parameter, or null if it is not set.
+         */
+        protected function parseBody(string $body) {
+            if(empty($body)) return '';
 
-        public function getUser() {
-            return $this->user;
-        }
-
-        public function getQueryParams() {
-            return $_GET;
-        }
-
-        public function getQueryParam(string $key) {
-            return @$_GET[$key];
-        }
-
-        protected function parseBody(string $body): array {
-            // Return empty array if the body is empty
-            if(empty($body)) return [];
-
-            // Try to use json_decode()
-            $data = @json_decode($body, true);
-            if($data) return $data;
-            
-            // Try to use parse_str()
-            @parse_str($body, $data);
-            if($data) return $data;
-
-            return [];
+            switch($this->getHeader('content-type')) {
+                case 'application/json':
+                    return @json_decode($body, true);
+                default:
+                    return '';
+            }
         }
     }

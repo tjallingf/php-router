@@ -264,7 +264,7 @@ class Parser implements ParserInterface
             return TagDTO::makeFromPrimitives(true);
         }
 
-        return TagDTO::makeFromPrimitives(true, true, null, \strtolower($tag));
+        return TagDTO::makeFromPrimitives(true, true, null, $tag);
     }
 
     /**

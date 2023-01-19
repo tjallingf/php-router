@@ -1,18 +1,32 @@
 <?php 
     namespace Router\Controllers;
 
-    abstract class Controller {
-        protected static array $data;
+    use Router\Lib;
 
-        static public function index() {
-            if(!isset(self::$data)) static::populate();
+    class Controller {
+        public static string $dir;
+        protected static array $data = [];
 
-            return self::$data;
+        public static function index() {
+            if(!isset(static::$data)) 
+                static::$data = static::populate();
+
+            return static::$data;
         }
 
-        static public function find(string $item) {
-            return array_get_path(static::index(), $item);
+        public static function store(array $data) {
+            self::$data = (array) $data;
         }
 
-        abstract static public function populate();
+        public static function find(string $item) {
+            static::index();
+            return Lib::arrayGetByPath(static::$data, $item);
+        }
+
+        public static function edit(string $item, $props) {
+            static::index();
+            return Lib::arraySetByPath(static::$data, $item, $props);
+        }
+
+        public static function populate() {}
     }

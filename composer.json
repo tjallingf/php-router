@@ -3,11 +3,28 @@
     "description": "A PHP router featuring routes, views, components.",
     "license": "Apache-2.0",
     "type": "library",
-    "require": {},
     "autoload": {
         "psr-4": {
             "Router\\": "src/Router",
-            "PHPHtmlParser\\": "src/paquettg/php-html-parser"
+            "PHPHtmlParser\\": "packages/PHPHtmlParser"
         }
+    },
+    "scripts": {
+        "test": "./vendor/bin/phpunit tests"
+    },
+    "require": {
+        "php": ">=7.2",
+        "ext-xml": ">=7.2",
+        "ext-mbstring": "*",
+        "ext-zlib": "*",
+        "ext-curl": "*",
+        "paquettg/string-encode": "~1.0.0",
+        "php-http/httplug": "^2.1",
+        "guzzlehttp/guzzle": "^7.0",
+        "guzzlehttp/psr7": "^1.6",
+        "myclabs/php-enum": "^1.7"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9.5"
     }
 }

@@ -2,32 +2,58 @@
     namespace Router\Models;
 
     class UrlTemplateModel {
-        public array $partsList = [];
+        protected array $partsMap = [];
 
         public function __construct(string $template_path) {
-            $this->partsList = $this->toPartsList($template_path);
+            $this->partsMap = $this->pathToPartsMap($template_path);
         }
 
-        protected function trim(string $template_path) {
-            return trim($template_path, '/');
+        public function getPartsMap() {
+            return $this->partsMap;
         }
 
-        protected function toPartsList(string $template_path) {
-            $parts = explode('/', $this->trim($template_path));
-            $parts_list = [];
+        public function getPart($index) {
+            return @$this->getPartsMap()[$index];
+        }
+
+        protected function pathToPartsMap(string $template_path) {
+            $items = explode('/', trim($template_path, '/'));
+            $map = [];
             
-            foreach ($parts as $index => $part) {
-                $is_parameter = (str_starts_with($part, '{') && str_ends_with($part, '}'));
-                $part_name = ltrim(rtrim($part, '?}'), '{');
-                $is_required = ($is_parameter ? ($is_parameter && !str_ends_with(rtrim($part, '}'), '?')) : true);
+            foreach ($items as $index => $item) {
+                $item = trim($item);
 
-                $parts_list[$index] = [
-                    'is_parameter' => $is_parameter,
+                // Determine whether the item is an url {parameter}
+                $is_parameter = (str_starts_with($item, '{') && str_ends_with($item, '}'));
+
+                // Determine whether the part is required to exist in 
+                // order for an url to match
+                $is_required = $is_parameter 
+                    ? !str_ends_with(rtrim($item, '}'), '?')
+                    : true;
+
+                $parameter_name = $is_parameter 
+                    ? rtrim(ltrim($item, '{'), '?}')
+                    : null;
+
+                $part = [
+                    'type' => $is_parameter 
+                        ? 'parameter' 
+                        : 'text',
                     'is_required' => $is_required,
-                    'name' => $part_name
+                    'parameter_name' => $parameter_name,
+                    'validation'  => [
+                        'expect_value' => $is_parameter 
+                            ? null 
+                            : $item
+                    ]
                 ];
+
+
+
+                $map[$index] = $part;
             }
 
-            return $parts_list;
+            return $map;
         }
     }
