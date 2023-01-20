@@ -42,7 +42,7 @@
             return $found_route;
         }
      
-        protected static function handleRoute(RouteModel $route, string $method, UrlModel $url) {
+        protected static function handleRoute(RouteModel $route, string $method, UrlModel $url): void {
             $req = MwController::construct('Request', [ $route, $method, $url ]);
             $res = MwController::construct('Response');
 
@@ -52,23 +52,25 @@
 
             $err = $route->handle($req, $res, $next);
 
-            if($err)
-                return $res->sendError($err);
+            if($err) {
+                $res->sendError($err);
+                return;
+            }
 
-            return $res->end();
+            $res->end();
         }
         
-        public static function handleRequest(string $method, string $url_path) {
+        public static function handleRequest(string $method, string $url_path): void {
             $url = new UrlModel($url_path);
             $method = trim(strtolower($method));
 
-            // Find listener
-            $route = self::findRoute($method, $url);
+            // Find route
+            $found_route = self::findRoute($method, $url);
             
+            if($found_route)
+                self::handleRoute($found_route, $method, $url);
+                
             // Throw 404 error if no route can be found.
-            if(!$route)
-                return self::$res->sendError('Route not found.', 404);
-
-            return self::handleRoute($route, $method, $url);
+            self::$res->sendError('Route not found.', 404);
         }
     }

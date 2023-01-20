@@ -16,9 +16,8 @@
 
             $contents = @json_decode(file_get_contents($filepath), true);
 
-            if(!isset($keypath)) {
+            if(!isset($keypath))
                 return $contents;
-            }
 
             return Lib::arrayGetByPath($contents, $keypath);
         }
@@ -46,8 +45,8 @@
 
         protected static function splitPath(string $item): array {
             $filename = strtok($item, '.');
-            $keypath = strtok('.');
-            if($keypath === false) $keypath = null;
+            $keypath = substr($item, strlen($filename)+1);
+            if(empty($keypath)) $keypath = null;
 
             $base_dir = Lib::joinPaths(Lib::getRootDir(), 'storage');
             $filepath = Lib::joinPaths($base_dir, $filename.'.json');

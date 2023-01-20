@@ -10,14 +10,10 @@
     class Response {
         const BODY_SEPERATOR = "\r\n";
 
-        protected static array $headers;
-        protected static array $body;
-        protected static int $statusCode;
-        protected static bool $wasEnded;
-
-        function __construct() {
-            $this->reset();
-        }
+        protected static array $headers = [];
+        protected static array $body = [];
+        protected static int $statusCode = 200;
+        protected static bool $wasEnded = false;
 
         function send($data): self {
             if(is_array($data))
@@ -55,15 +51,18 @@
             return implode(self::BODY_SEPERATOR, self::$body);
         }
 
-        function sendError($error, int $status_code = 0) {
+        function sendError($error, int $status_code = -1) {
             if($error instanceof Exception) {
                 $message = $error->getMessage();
-                $status_code = $status_code === 0 && $error->getCode() > 0 
+                $status_code = $status_code === -1 && $error->getCode() > -1
                     ? $error->getCode() 
                     : $status_code;
             } else {
                 $message = $error;
             }
+
+            if($status_code === -1) 
+                $status_code = 500;
 
             return $this->json(['error' => $message])
                 ->status($status_code)
@@ -140,16 +139,8 @@
 
             // Send body
             echo($this->getBody());
-
-            self::$wasEnded = true;    
-            return $this;
-        }
-
-        protected function reset(): self {
-            self::$headers = [];
-            self::$body = [];
-            self::$statusCode = 200;
-            self::$wasEnded = false;
+            
+            self::$wasEnded = true;
 
             return $this;
         }
