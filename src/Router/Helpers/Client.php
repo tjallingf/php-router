@@ -4,7 +4,7 @@
     use Router\Helpers\Config;
     use Router\Lib;
 
-    class App {
+    class Client {
         public static $includedStylesheets = [];
         public static $includedScripts = [];
 
@@ -25,7 +25,7 @@
 
         public static function includeStylesheet($filename, array $attributes = []): string {
             // In development mode, styles are handled by the JavaScript file.
-            if(Config::get('development')) return '';
+            if(Config::get('client.developmentModeEnabled')) return '';
 
             if(!isset($filename)) return '';
             $url = self::resolveUrl($filename);
@@ -44,7 +44,7 @@
         }
 
         public static function findMainStylesheet() {
-            if(Config::get('development')) {
+            if(Config::get('client.developmentModeEnabled')) {
                 $filepath = @glob(APP_CLIENT_SRC_DIR.'/*.{css,scss,sass}', GLOB_BRACE)[0];
                 return basename($filepath);
             }
@@ -57,7 +57,7 @@
             $filepath = self::resolveFilepath($filename); 
             if(!isset($filepath)) return $filepath;
 
-            if(Config::get('development')) {
+            if(Config::get('client.developmentModeEnabled')) {
                 $domain = 'http://localhost:'.Config::get('client.port');
                 $url = ltrim(substr($filepath, strlen(APP_CLIENT_SRC_DIR)), '/');
             
@@ -72,7 +72,7 @@
         }
 
         public static function resolveFilepath(string $filename) {
-            if(Config::get('development'))
+            if(Config::get('client.developmentModeEnabled'))
                 return Lib::joinPaths(APP_CLIENT_SRC_DIR, $filename);
 
             // Generate pattern for file names to match,

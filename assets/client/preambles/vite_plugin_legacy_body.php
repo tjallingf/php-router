@@ -1,11 +1,11 @@
 <?php 
-    use Router\Helpers\App;
+    use Router\Helpers\Client;
     use Router\Helpers\Config;
 
     $input_file_filename = pathinfo(Config::get('client.inputFile'), PATHINFO_FILENAME); 
 
-    $legacy_polyfills_url = App::resolveUrl('polyfills-legacy.js');
-    $legacy_entry_url = App::resolveUrl($input_file_filename.'-legacy.js');
+    $legacy_polyfills_url = Client::resolveUrl('polyfills-legacy.js');
+    $legacy_entry_url = Client::resolveUrl($input_file_filename.'-legacy.js');
 ?>
 <script nomodule>!function(){var e=document,t=e.createElement("script");if(!("noModule"in t)&&"onbeforeload"in t){var n=!1;e.addEventListener("beforeload",(function(e){if(e.target===t)n=!0;else if(!e.target.hasAttribute("nomodule")||!n)return;e.preventDefault()}),!0),t.type="module",t.src=".",e.head.appendChild(t),t.remove()}}();</script>
 

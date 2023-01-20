@@ -5,17 +5,18 @@
     use Router\Helpers\Config;
     use PHPHtmlParser\Dom\Node\HtmlNode;
     use Router\Helpers\Dom;
+    use Router\Helpers\Client;
 
-    class AppPreamble {
+    class ClientPreamble {
         public static function toNode(string $preamble_code): HtmlNode {
             if(empty($preamble_code)) return new HtmlNode('root');
             return (new Dom($preamble_code))->root;
         }
 
         public static function getHeadCode(): string {
-            switch(Config::get('development')) {
+            switch(Config::get('client.developmentModeEnabled')) {
                 case true:
-                    if(count(App::$includedScripts) || count(App::$includedStylesheets))
+                    if(count(Client::$includedScripts) || count(Client::$includedStylesheets))
                         return self::getOne('dev_vite_refresh_runtime');
                     break;
                 default:
@@ -26,9 +27,9 @@
         }
 
         public static function getBodyCode(): string {
-            switch(Config::get('development')) {
+            switch(Config::get('client.developmentModeEnabled')) {
                 case true:
-                    if(count(App::$includedScripts) || count(App::$includedStylesheets))
+                    if(count(Client::$includedScripts) || count(Client::$includedStylesheets))
                         return self::getOne('dev_check_client_status');
                     break;
                 default:
@@ -49,10 +50,7 @@
         }
 
         /**
-         * Calculates the filepath for the given preamble.
-         * Preambles are looked for in the preambles/dev directory
-         * if 'development' is set to true in the config,
-         * otherwise the preambles/prod directory is used.
+         * Returns the file contents for a given preamble.
          * @param string $name - The name of the preamble to inject.
          * @return string - The preamble code.
          */
