@@ -45,7 +45,7 @@
             try {
                 call_user_func($this->callback, ...$args);
             } catch(\Exception $e) {
-                if(Config::get('development'))
+                if(APP_MODE_DEV)
                     throw $e;
 
                 return $e;

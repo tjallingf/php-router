@@ -5,7 +5,7 @@
     use Router\Helpers\Response;
     use Router\Helpers\Request;
     use Router\Helpers\Config;
-    use Router\Helpers\App;
+    use Router\Helpers\Client;
     use Router\Controllers\ConfigController;
     use Router\Controllers\RouteController;
     use Router\Controllers\MiddlewareController as MwController;
@@ -21,7 +21,7 @@
             self::$root_dir = str_replace('\\', '/', realpath($root_dir));
             ConfigController::store($config);
 
-            if(Config::get('development'))
+            if(APP_MODE_DEV)
                 define('APP_CLIENT_SRC_DIR', realpath(Lib::joinPaths(
                     Lib::getRootDir(), 
                     Config::get('client.rootDir'), 
@@ -35,7 +35,7 @@
             // Define middlewares
             MwController::update('Response', Response::class);
             MwController::update('Request', Request::class);
-            MwController::update('Client', App::class);
+            MwController::update('Client', Client::class);
             MwController::update('UserController', UserController::class);
             MwController::update('RouteController', RouteController::class);
         }
