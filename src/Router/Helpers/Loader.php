@@ -38,8 +38,6 @@
             MwController::update('Client', App::class);
             MwController::update('UserController', UserController::class);
             MwController::update('RouteController', RouteController::class);
-
-            self::loadRouter();
         }
 
         public static function loadRouter() {
