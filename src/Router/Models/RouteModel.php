@@ -115,18 +115,8 @@
         }
 
         protected function callMiddlewares(string $method, Request &$req, Response &$res) {
-            $request_class  = (Overrides::get(Request::class));
-            $response_class = (Overrides::get(Response::class));
-
             foreach ($this->getAllMiddlewares() as $middleware) {               
                 $result = $middleware->handle($method, $req, $res);
-                if(!is_subclass_of($result, Message::class)) return;
-
-                if($method === Middleware::MAP_REQUEST && $result::class === $request_class) {
-                    $req = $result;
-                } else if($method === Middleware::MAP_RESPONSE && $result === $response_class) {
-                    $res = $result;
-                }
             }
         }
     }

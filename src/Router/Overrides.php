@@ -56,12 +56,7 @@
 
         protected static function storeNamespaces(): bool {
             if(self::$enabled === false) return false;
-
-            if(Config::get('overrides.enabled') === false) {
-                self::$enabled = false;
-                return false;
-            }
-
+            
             $ov_namespace = Config::get('overrides.namespace');
             if(!is_string($ov_namespace)) {
                 self::$enabled = false;

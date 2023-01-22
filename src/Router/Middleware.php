@@ -10,6 +10,8 @@
         public const MAP_RESPONSE = 'mapResponse';
         public const NONE         = 'none';
 
+        public static array $ids = [];
+
         public static function mapRequest(string $id, callable $handler) {
             return self::create($id, $handler, self::MAP_REQUEST);
         }
@@ -19,6 +21,10 @@
         }
 
         public static function create(string $id, string|callable|MiddlewareInterface $handler, ?string $type = null) {  
+            if(array_key_exists($id, self::$ids))
+                throw new Exception("A middleware with id '$id' already exists.");
+            self::$ids[$id] = true;
+            
             // If $handler is a class string, construct it
             if(is_string($handler)) {
                 if(!class_exists($handler))

@@ -5,7 +5,7 @@
     use Router\Response;
 
     interface MiddlewareInterface {
-        public function mapRequest(Request $req, Response $res);
+        public function mapRequest(Request $req, Response $res): void;
 
-        public function mapResponse(Request $req, Response $res);
+        public function mapResponse(Request $req, Response $res): void;
     }

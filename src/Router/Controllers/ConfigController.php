@@ -24,7 +24,6 @@
                 'errorView'                 => 'error'
             ],
             'overrides' => [
-                'enabled'                   => false,
                 'namespace'                 => null
             ]
         ];

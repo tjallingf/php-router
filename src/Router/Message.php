@@ -22,6 +22,10 @@
             return @$this->cookies[trim($name)];
         }
 
+        public function hasCookie(string $name): bool {
+            return !is_null($this->getCookie($name)?->getValue());
+        }
+
         public function getHeader(string $name): array {
             $name = strtolower(trim($name));
             $value = $this->headers[$name];
