@@ -6,67 +6,41 @@
     use Router\Lib;
 
     class StorageController extends Controller {
-        public static array $data = [];
+        public static function index(): ?array {
+            return null;
+        }
 
         public static function find(string $path) {
             list($filepath, $keypath) = self::splitPath($path);
             if(!isset($filepath)) return null;
 
-            $contents = self::getContents($filepath);
-            if(!isset($keypath)) return $contents;
+            $contents = @json_decode(file_get_contents($filepath), true);
+
+            if(!isset($keypath))
+                return $contents;
 
             return Lib::arrayGetByPath($contents, $keypath);
         }
 
-        public static function edit(string $path, $value): static {
-            list($filepath, $keypath) = self::splitPath($path);
-            if(!isset($filepath)) return new static();
-
-            $contents = self::getContents($filepath);
-
-            if(isset($keypath)) {
-                Lib::arraySetByPath($contents, $keypath, array_replace_recursive(
-                    Lib::arrayGetByPath($contents, $keypath), Lib::arrayGetByPath($value, $keypath)));
-            } else {
-                $contents = array_replace_recursive($contents, $value);
-            }
-
-            self::setContents($filepath, $contents);
-
-            return new static();
-        }
-
-        public static function update(string $path, $value): static {
-            list($filepath, $keypath) = self::splitPath($path);
-            if(!isset($filepath)) return new static();
-
-            if(isset($keypath)) {
-                $contents = self::getContents($filepath);
-                Lib::arraySetByPath($contents, $keypath, Lib::arrayGetByPath($value, $keypath));
-            } else {
-                $contents = $value;
-            }
+        public static function edit(string $path, $value) {
+            list($filepath, $keypath, $filename) = self::splitPath($path);
+            if(!isset($filepath)) return self::class;
             
-            self::setContents($filepath, $contents);
-
-            return new static();
-        }
-
-        protected static function setContents(string $filepath, array $contents): void {            
             $dirpath = dirname($filepath);
             
             if(!is_dir($dirpath))
                 mkdir($dirpath, 0777, true);
-        }
-
-        protected static function getContents(string $filepath): array {
-            if(!is_null(self::find($filepath)))
-                return self::find($filepath);
             
-            $contents = @json_decode(file_get_contents($filepath), true);
-            self::update($filepath, $contents);
+            if(!isset($keypath)) {
+                $contents = $value;
+            } else {
+                $contents = (array) self::find($filename);
+                Lib::arraySetByPath($contents, $keypath, $value);
+            }
 
-            return $contents ?? []; 
+            file_put_contents($filepath, json_encode($contents));
+
+            return self::class;
         }
 
         protected static function splitPath(string $item): array {
@@ -81,6 +55,6 @@
             if(!str_starts_with($filepath, $base_dir))
                 return [ null, null ];
 
-            return [ $filepath, $keypath ];
+            return [ $filepath, $keypath, $filename ];
         }
     }

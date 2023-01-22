@@ -1,7 +1,7 @@
 <?php 
-    namespace Router;
+    namespace Router\Helpers;
 
-    use Router\Config;
+    use Router\Helpers\Config;
     use Router\Lib;
 
     class Client {
@@ -16,7 +16,7 @@
             array_push(self::$includedScripts, $filename);
 
             return (
-                self::createNodeString('script', array_replace(
+                self::createNodeString('script', array_merge(
                     $attributes,
                     [ 'src' => $url, 'type' => 'module' ]
                 ))
@@ -33,14 +33,14 @@
 
             array_push(self::$includedStylesheets, $filename);
 
-            return self::createNodeString('link', array_replace(
+            return self::createNodeString('link', array_merge(
                 $attributes,
                 [ 'href' => $url, 'rel' => 'stylesheet' ]
             ));
         }
 
         public static function findMainScript() {
-            return basename(Config::get('client.inputFile'));
+            return basename(config::get('client.inputFile'));
         }
 
         public static function findMainStylesheet() {
@@ -70,77 +70,8 @@
                 return $url;
             }
         }
-        
-        public static function getHeadPreamble(): string {
-            switch(Config::get('client.developmentModeEnabled')) {
-                case true:
-                    if(count(Client::$includedScripts) || count(Client::$includedStylesheets))
-                        return self::getPreamble('dev_vite_refresh_runtime');
-                    break;
-                default:
-                    return self::getPreamble('vite_plugin_legacy_head');
-            }
 
-            return '';
-        }
-
-        public static function getBodyPreamble(): string {
-            switch(Config::get('client.developmentModeEnabled')) {
-                case true:
-                    if(count(Client::$includedScripts) || count(Client::$includedStylesheets))
-                        return self::getPreamble('dev_check_client_status');
-                    break;
-                default:
-                    return self::getPreamble('vite_plugin_legacy_body');
-            }
-
-            return '';
-        }
-        
-        protected static function createNodeString(string $node, array $attributes = [], string $content = ''): string {
-            $node_string = "<$node ";
-
-            foreach ($attributes as $key => $value) {
-                $node_string .= "$key=\"$value\" ";
-            }
-            
-            $node_string = rtrim($node_string, ' ').">$content</$node/>";
-
-            return $node_string;
-        }
-
-        protected static function getPreambles(array $names) {
-            $code = '';
-
-            foreach ($names as $name) {
-                $code .= self::getPreamble($name);
-            }
-
-            return $code;
-        }
-
-        /**
-         * Returns the file contents for a given preamble.
-         * @param string $name - The name of the preamble to inject.
-         * @return string - The preamble code.
-         */
-        protected static function getPreamble(string $name): string {
-            $filepath = Lib::joinPaths(
-                Lib::getPackageDir(), 
-                'assets/client/preambles',
-                "$name.php");
-
-            if(!file_exists($filepath)) 
-                return '';
-
-            ob_start();
-            include($filepath);
-            $content = ob_get_clean();
-
-            return $content; 
-        }
-        
-        protected static function resolveFilepath(string $filename) {
+        public static function resolveFilepath(string $filename) {
             if(Config::get('client.developmentModeEnabled'))
                 return Lib::joinPaths(APP_CLIENT_SRC_DIR, $filename);
 
@@ -164,6 +95,18 @@
             $dist_filename = $prod_files[0];
 
             return $dist_filename;
+        }
+        
+        protected static function createNodeString(string $node, array $attributes = [], string $content = ''): string {
+            $node_string = "<$node ";
+
+            foreach ($attributes as $key => $value) {
+                $node_string .= "$key=\"$value\" ";
+            }
+            
+            $node_string = rtrim($node_string, ' ').">$content</$node/>";
+
+            return $node_string;
         }
     }
 ?>

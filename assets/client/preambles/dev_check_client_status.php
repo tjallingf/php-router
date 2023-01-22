@@ -1,5 +1,5 @@
 <?php 
-    use Router\Config; 
+    use Router\Helpers\Config; 
     use Router\Lib;
 
     function get_start_command() {

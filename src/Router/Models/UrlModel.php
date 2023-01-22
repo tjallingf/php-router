@@ -2,7 +2,7 @@
     namespace Router\Models;
 
     use Router\Models\UrlTemplateModel;
-    
+
     class UrlModel {
         protected string $path;
         protected array $valuesMap = [];
@@ -10,10 +10,6 @@
         public function __construct(string $path) {
             $this->path = $path;
             $this->valuesMap = $this->pathToValuesMap($path);
-        }
-
-        public function __toString(): string {
-            return $this->path;
         }
 
         public function matchesTemplate(UrlTemplateModel $template): bool {
