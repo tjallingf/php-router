@@ -4,19 +4,19 @@
     use Router\Config;
     use Router\Lib;
 
-    class Client {
+    final class Client {
         public static $includedStylesheets = [];
         public static $includedScripts = [];
 
         public static function includeScript($filename, array $attributes = []): string {
             if(!isset($filename)) return '';
-            $url = self::resolveUrl($filename);
+            $url = static::resolveUrl($filename);
             if(!isset($url)) return '';
 
-            array_push(self::$includedScripts, $filename);
+            array_push(static::$includedScripts, $filename);
 
             return (
-                self::createNodeString('script', array_merge(
+                static::createNodeString('script', array_merge(
                     $attributes,
                     [ 'src' => $url, 'type' => 'module' ]
                 ))
@@ -28,12 +28,12 @@
             if(Config::get('client.developmentModeEnabled')) return '';
 
             if(!isset($filename)) return '';
-            $url = self::resolveUrl($filename);
+            $url = static::resolveUrl($filename);
             if(!isset($url)) return '';
 
-            array_push(self::$includedStylesheets, $filename);
+            array_push(static::$includedStylesheets, $filename);
 
-            return self::createNodeString('link', array_merge(
+            return static::createNodeString('link', array_merge(
                 $attributes,
                 [ 'href' => $url, 'rel' => 'stylesheet' ]
             ));
@@ -54,7 +54,7 @@
         }
 
         public static function resolveUrl(string $filename) {
-            $filepath = self::resolveFilepath($filename); 
+            $filepath = static::resolveFilepath($filename); 
             if(!isset($filepath)) return $filepath;
 
             if(Config::get('client.developmentModeEnabled')) {

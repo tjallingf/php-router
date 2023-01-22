@@ -2,12 +2,10 @@
     namespace Router;
 
     use Router\Controllers\ViewController;
+    use Router\Exception;
 
     class View {
-        static function get(string $name, array $data = []) {
-            if(!ViewController::exists($name))
-                return new \Exception("Cannot find view '{$name}'.", 404);
-                
+        static function get(string $name, array $data = []) {               
             return ViewController::find($name, $data);
         }
     }

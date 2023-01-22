@@ -4,30 +4,30 @@
     use Router\Models\ComponentModel;
     use Router\Controllers\Controller;
     use Router\Lib;
-    use Exception;
+    use Router\Exception;
 
     class ComponentController extends Controller {
-        public static string $dir = '/resources/components';
-        const TYPE = 'component';
-        const MODEL = ComponentModel::class;
+        protected static string $dir = '/resources/components';
+        protected static string $model = ComponentModel::class;
 
-        public static function exists(string $name): bool {
-            return is_file(self::getPath($name));
-        }
-
-        protected static function getPath(string $name): string {
+        protected static function getPath(string $name): string|null {
             $filename = lib::joinPaths(Lib::getRootDir(), static::$dir, $name);
             
             if(file_exists("$filename.php")) return "$filename.php";
-            return "$filename.html";
+            if(file_exists("$filename.html")) return "$filename.html";
+
+            return null;
         }
 
         public static function find(string $name, array $data = []) {
-            if(!self::exists($name))
-                return new Exception('Cannot find '.static::TYPE. " '$name'.",);
+            $filepath = static::getPath($name);
+            
+            if(!isset($filepath))
+                throw new Exception('Cannot find '.static::TYPE_NAME. " '$name'", 404);
 
-            $model = static::MODEL;
-            return new $model(self::getPath($name), $data);
+            return new (static::$model::getOverride())($filepath, $data);
         }
+
+        protected const TYPE_NAME = 'component';
     }
 ?>

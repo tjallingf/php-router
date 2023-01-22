@@ -8,7 +8,7 @@
         private Response $res;
 
         public function setUp(): void {
-            $this->res = Response::get();
+            $this->res = Response::getOverride();
         }
 
         public function testApiGet() {

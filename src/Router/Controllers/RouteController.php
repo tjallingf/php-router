@@ -1,9 +1,9 @@
 <?php
     namespace Router\Controllers;
 
-    use Router\Controllers\Controller;
     use Router\Lib;
     use Router\Models\UrlModel;
+    use Router\Controllers\Controller;
 
     class RouteController extends Controller {
         protected const DIR = '/resources/routes';
@@ -34,9 +34,7 @@
             return $found_route;
         }
     
-        public static function create(?string $id = null, $route): static {
+        public static function create(?string $id = null, $route): void {
             array_push(static::$data, $route);
-
-            return new static();
         }
     }

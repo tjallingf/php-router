@@ -5,17 +5,14 @@
     use Router\Models\ComponentModel;
     use Router\Models\ResponseCookieModel;
     use Router\Models\ViewModel;
-    use Router\Mesage;
-    use Exception;
+    use Router\Router;
+    use Router\Exception;
 
     class Response extends Message {
-        protected const COOKIE_MODEL = ResponseCookieModel::class;
-
         public array $headers   = [];
         public array $cookies   = [];
         public array $body      = [];
-        public ?int $statusCode = null;
-        public bool $closed     = false;
+        public int $statusCode  = 200;
 
         public function __construct() {
             parent::__construct();
@@ -29,40 +26,27 @@
                 $data = $data->render();
             
             if($data instanceof Exception)
-                return $this->throw($data);
+                throw $data;
 
             array_push($this->body, $data);
 
             return $this;
         }
         
-        public function sendJson($data): self {
-            $this->send(json_encode($data));
+        public function sendJson($data, int $flags = 0): self {
+            $this->send(json_encode($data, $flags));
             $this->sendHeader('content-type', 'application/json', true);
 
             return $this;
         }
+        
+        public function sendStatusCode(?int $status_code = null): self {
+            if(isset($status_code)) {
+                if(!array_key_exists($status_code, static::STATUS_CODES))
+                    throw new \Exception("Invalid status code: '$status_code'.");
 
-        function throw(string|Exception $error, int $status_code = 0): self {
-            if($error instanceof Exception) {
-                $message = $error->getMessage();
-                $status_code = $status_code === 0 && $error->getCode() > 0
-                    ? $error->getCode() 
-                    : $status_code;
-            } else {
-                $message = $error;
+                $this->statusCode = $status_code;
             }
-
-            if($status_code === 0) 
-                $status_code = 500;
-
-            $this->sendJson(['error' => $message])->sendStatusCode($status_code)->end();
-
-            return $this;
-        }
-
-        public function sendStatusCode(int $status_code): self {
-            $this->statusCode = $status_code;
 
             return $this;
         }
@@ -79,7 +63,13 @@
             return $this;
         }
 
-        public function redirect(string $url, bool $ignore_app_base_url = false): self {
+        public function clearBody(): self {
+            $this->body = [];
+            
+            return $this;
+        }
+
+        public function redirect(string $url, bool $ignore_app_base_url = false): void {
             $url = trim($url);
             $is_relative = !str_contains(substr($url, 0, 8), '://');
 
@@ -87,23 +77,16 @@
                 $url = Lib::joinPaths(Config::get('router.baseUrl'), $url);
 
             $this->sendHeader('location', $url, true)->sendStatusCode(302)->end();
-
-            return $this;
         }
         
-        public function end(): self {
-            if($this->closed) return $this;
-            $this->closed = true;
+        public function end(): void {
+            $this->endStatusCode();    
+            $this->endCookies();
+            $this->endHeaders();
+            $this->endBody();
+            $this->close();
 
-            if(!headers_sent()) {
-                $this->endStatusCode();    
-                $this->endCookies();
-                $this->endHeaders();
-                $this->endBody();
-                $this->close();
-            }
-
-            return $this;
+            exit();
         }
 
         public function createCookie(            
@@ -125,7 +108,7 @@
                 'httponly' => $httponly
             ];
 
-            return new (self::COOKIE_MODEL)($data);
+            return new (ResponseCookieModel::getOverride())($data);
         }
 
         public function sendCookie(ResponseCookieModel $cookie): self {               
@@ -160,7 +143,53 @@
         }
 
         /**
-         * Can be used to extend Response::end().
+         * Subclasses can use Response::close() to extend Response::end().
          */
-        protected function close() {}
+        protected function close(): void {}
+
+        protected const STATUS_CODES = [ 
+            // 1xx: Informational
+            100 => 'Continue', 
+            101 => 'Switching Protocols',
+
+            // 2xx: Successful
+            200 => 'OK', 
+            201 => 'Created', 
+            202 => 'Accepted', 
+            203 => 'Non-authoritative information', 
+            204 => 'No content', 
+            205 => 'Reset content', 
+            206 => 'Partial content',
+
+            // 3xx: Redirection
+            300 => 'Multiple choices',
+            301 => 'Moved permanently',
+            302 => 'Found',
+            303 => 'See ether',
+            304 => 'Not modified',
+            305 => 'Use oroxy',
+            306 => '(Unused)',
+            307 => 'Temporary redirect',
+
+            // 4xx: Client Error
+            400 => 'Bad request',
+            401 => 'Unauthorized',
+            402 => 'Payment required',
+            403 => 'Forbidden',
+            404 => 'Not found',
+            405 => 'Method not allowed',
+            406 => 'Not acceptable',
+            407 => 'Proxy authentication required',
+            408 => 'Request timeout',
+            409 => 'Conflict',
+            410 => 'Gone',
+
+            // 5xx: Server Error
+            500 => 'Internal server error',
+            501 => 'Not implemented',
+            502 => 'Bad gateway',
+            503 => 'Service unavailable',
+            504 => 'Gateway timeout',
+            505 => 'HTTP version not supported'
+        ];
     }

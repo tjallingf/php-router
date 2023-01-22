@@ -6,12 +6,12 @@
     use Router\Lib;
 
     class StorageController extends Controller {
-        public static function index(): ?array {
-            return null;
+        public static function index(): array {
+            return [];
         }
 
         public static function find(string $path) {
-            list($filepath, $keypath) = self::splitPath($path);
+            list($filepath, $keypath) = static::splitPath($path);
             if(!isset($filepath)) return null;
 
             $contents = @json_decode(file_get_contents($filepath), true);
@@ -22,9 +22,9 @@
             return Lib::arrayGetByPath($contents, $keypath);
         }
 
-        public static function edit(string $path, $value) {
-            list($filepath, $keypath, $filename) = self::splitPath($path);
-            if(!isset($filepath)) return self::class;
+        public static function edit(string $path, $value): string {
+            list($filepath, $keypath, $filename) = static::splitPath($path);
+            if(!isset($filepath)) return static::class;
             
             $dirpath = dirname($filepath);
             
@@ -34,13 +34,13 @@
             if(!isset($keypath)) {
                 $contents = $value;
             } else {
-                $contents = (array) self::find($filename);
+                $contents = (array) static::find($filename);
                 Lib::arraySetByPath($contents, $keypath, $value);
             }
 
             file_put_contents($filepath, json_encode($contents));
 
-            return self::class;
+            return static::class;
         }
 
         protected static function splitPath(string $item): array {

@@ -1,11 +1,19 @@
 <?php
     namespace Router\Models;
 
-    class UrlTemplateModel {
+    use Router\Models\Model;
+
+    class UrlTemplateModel extends Model {
+        protected string $path;
         protected array $partsMap = [];
 
-        public function __construct(string $template_path) {
-            $this->partsMap = $this->pathToPartsMap($template_path);
+        public function __construct(string $path) {
+            $this->path = $path;
+            $this->partsMap = $this->pathToPartsMap($path);
+        }
+
+        public function __toString(): string {
+            return $this->path;
         }
 
         public function getPartsMap() {

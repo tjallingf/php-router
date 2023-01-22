@@ -2,12 +2,10 @@
     namespace Router;
     
     use Router\Models\UrlModel;
-    use Router\Models\RequestCookieModel;   
+    use Router\Models\RequestCookieModel;
     use Router\Message;
 
     class Request extends Message {       
-        protected const COOKIE_MODEL = RequestCookieModel::class;
-
         public string $method;
         public UrlModel $url;
         public array $params;
@@ -30,8 +28,6 @@
             $this->params = $params;
             $this->query = $this->parseQuery((string) $url);
             $this->body = $this->parseBody($body);
-
-            $this->open();
         }
 
         /**
@@ -48,7 +44,7 @@
          * @param string $name - The name of the query parameter to get.
          * @return any - The value of the query parameter, or null if it is not set.
          */
-        public function getQuery(string $name) {
+        public function getQuery(string $name): string|null {
             return @$this->query[trim($name)];
         }
 
@@ -70,7 +66,7 @@
             $parsed = [];
 
             foreach ($cookies as $cookie_string) {    
-                $cookie = self::COOKIE_MODEL::fromString($cookie_string);
+                $cookie = RequestCookieModel::getOverride()::fromString($cookie_string);
                 $parsed[$cookie->getName()] = $cookie;     
             }
 
@@ -86,13 +82,13 @@
 
             switch($content_type) {
                 case 'application/json':
-                    $parsed = self::parseJsonBody($body);
+                    $parsed = static::parseJsonBody($body);
                     break;
                 case 'application/x-www-form-urlencoded':
-                    $parsed = self::parseFormBody($body);
+                    $parsed = static::parseFormBody($body);
                     break;
                 default:
-                    $parsed = self::parseJsonBody($body) ?? self::parseFormBody($body) ?? $body;
+                    $parsed = static::parseJsonBody($body) ?? static::parseFormBody($body) ?? $body;
                     break;
             }
 
@@ -108,14 +104,13 @@
             return $result;
         }
 
-        protected function parseQuery(string $url) {
+        protected function parseQuery(string $url): array {
             parse_str(parse_url($url, PHP_URL_QUERY), $result);
             return $result;
         }
 
-
         /**
-         * Can be used to extend Request::init().
+         * Subclasses can use Request::open() to extend Request::__construct().
          */
-        protected function open() {}
+        protected function open(): void {}
     }

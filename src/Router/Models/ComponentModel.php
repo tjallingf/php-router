@@ -1,13 +1,14 @@
 <?php
     namespace Router\Models;
 
-    use Router\Dom;
+    use Router\Models\Model;
+    use Router\Helpers\Dom;
     use Router\Controllers\ComponentController;
     use PHPHtmlParser\Dom\Node\HtmlNode;
     use PHPHtmlParser\Dom\Node\AbstractNode;
     use Exception;
 
-    class ComponentModel {
+    class ComponentModel extends Model {
         protected array $data;
         protected string $path;
 

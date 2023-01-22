@@ -2,12 +2,9 @@
     namespace Router\Models;
 
     use Router\Models\RequestCookieModel;
+    use Router\Models\Model;
 
-    abstract class CookieModel {
-        protected const VALID_ATTRIBUTES = ['expires', 'domain', 'path', 'secure', 'httponly'];
-        protected const BOOLEAN_ATTRIBUTES = ['httponly', 'secure'];
-        protected const SERIALIZE_PREFIX_JSON = 'application/json:';
-
+    abstract class CookieModel extends Model {
         protected array $data = [
             'name'      => null,
             'value'     => null,
@@ -107,4 +104,8 @@
 
             return json_decode(substr($serialized, strlen(self::SERIALIZE_PREFIX_JSON)), true);
         }
+
+        protected const VALID_ATTRIBUTES = ['expires', 'domain', 'path', 'secure', 'httponly'];
+        protected const BOOLEAN_ATTRIBUTES = ['httponly', 'secure'];
+        protected const SERIALIZE_PREFIX_JSON = 'application/json:';
     }

@@ -3,4 +3,6 @@
 
     use Router\Models\CookieModel;
 
-    class RequestCookieModel extends CookieModel {}
+    class RequestCookieModel extends CookieModel {
+        
+    }

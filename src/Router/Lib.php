@@ -3,7 +3,7 @@
 
     use Router\Loader;
 
-    class Lib {
+    final class Lib {
         public static function requireAll($dir) {
             foreach (self::recursiveGlob($dir, '*.php') as $file) require_once $file;
         }

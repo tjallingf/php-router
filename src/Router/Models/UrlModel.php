@@ -2,8 +2,9 @@
     namespace Router\Models;
 
     use Router\Models\UrlTemplateModel;
+    use Router\Models\Model;
     
-    class UrlModel {
+    class UrlModel extends Model {
         protected string $path;
         protected array $valuesMap = [];
 

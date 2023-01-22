@@ -1,47 +1,51 @@
 <?php
     namespace Router;
 
-    use Router\Models\RouteMiddlewareModel;
-    use Router\Interfaces\MiddlewareInterface;
-    use Exception;
+    use Router\Helpers\Overridable;
+    use Router\Exception;
+    use Router\Models\MiddlewareModel;
+    use Router\Models\MiddlewareObjectModel;
+    use Router\Models\MiddlewareCallableModel;
 
-    class Middleware {
-        public const MAP_REQUEST  = 'mapRequest';
-        public const MAP_RESPONSE = 'mapResponse';
-        public const NONE         = 'none';
-
+    class Middleware extends Overridable {
         public static array $ids = [];
 
         public static function mapRequest(string $id, callable $handler) {
-            return self::create($id, $handler, self::MAP_REQUEST);
+            return static::build($id, $handler, static::MAP_REQUEST);
         }
 
         public static function mapResponse(string $id, callable $handler) {
-            return self::create($id, $handler, self::MAP_REQUEST);
+            return static::build($id, $handler, static::MAP_RESPONSE);
         }
 
-        public static function create(string $id, string|callable|MiddlewareInterface $handler, ?string $type = null) {  
-            if(array_key_exists($id, self::$ids))
-                throw new Exception("A middleware with id '$id' already exists.");
-            self::$ids[$id] = true;
-            
+        public static function create(string $id, string|object $handler) {
             // If $handler is a class string, construct it
             if(is_string($handler)) {
                 if(!class_exists($handler))
-                    throw new Exception("Cannot find class '$handler'.");
-
+                    throw new Exception("Class '$handler' does not exist", 500);
+                
                 $handler = new $handler();
             }
-            
-            // If $handler is an instance of a class. Throw an exception if
-            // that class does not implement MiddlewareInterface.
-            if(is_object($handler) && !is_callable($handler)) {
-                if(!@class_implements($handler)[MiddlewareInterface::class])
-                    throw new Exception("Handler '{$handler}' does not implement '".MiddlewareInterface::class."'.");
-            
-                $type = self::NONE;
-            }
 
-            return new RouteMiddlewareModel($id, $handler, $type);
+            return static::build($id, $handler);
         }
+
+        protected static function build(
+            string $id, 
+            callable|object $handler, 
+            ?string $callable_as_method = null
+        ) {  
+            if(array_key_exists($id, static::$ids))
+                throw new Exception("Middleware with id '$id' already exists", 500);
+            
+            static::$ids[$id] = true;
+            if(is_callable($handler)) {
+                return new MiddlewareCallableModel($id, $handler, $callable_as_method);
+            } else {
+                return new MiddlewareObjectModel($id, $handler);
+            }
+        }
+
+        public const MAP_REQUEST  = 'mapRequest';
+        public const MAP_RESPONSE = 'mapResponse';
     }

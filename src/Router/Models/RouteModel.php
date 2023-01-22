@@ -6,14 +6,13 @@
 
     use Router\Request;
     use Router\Response;
-    use Router\Lib;
     use Router\Middleware;
     use Router\Router;
-    use Router\Message;
-    use Router\Overrides;
+    use Router\Models\Model;
     use Router\Models\UrlModel;
+    use Router\Models\MiddlewareModel;
 
-    class RouteModel {
+    class RouteModel extends Model {
         protected string $method;
         protected UrlTemplateModel $urlTemplate;
         protected $callback;
@@ -25,29 +24,21 @@
             $this->callback = $callback;
         }
         
-        public function matchesMethod(string $method): bool {
-            if($this->method == 'any') return true;
-            return (strtolower($this->method) == strtolower($method));
+        public function __toString() {
+            return strtoupper($this->method).' '.$this->urlTemplate->__toString();
         }
-
-        public function matchesUrl(UrlModel $url): bool {
-            return $url->matchesTemplate($this->urlTemplate);
-        }
-
-        public function getParams(UrlModel $url): array {
-            $params = [];
+        
+        public function handle(Request $req, Response $res): void {
+            // Allow middleware to modify the request before passing it to the handler.
+            $this->callMiddlewares($req, $res, Middleware::MAP_REQUEST);
             
-            foreach($this->urlTemplate->getPartsMap() as $index => $part) {
-                if($part['type'] != 'parameter') continue;
+            call_user_func($this->callback, $req, $res);
 
-                $value = $url->getValue($index);
-                $params[$part['parameter_name']] = $value;
-            }
-
-            return $params;
+            // Allow middleware to modify the response before passing it to the handler.
+            $this->callMiddlewares($req, $res, Middleware::MAP_RESPONSE);
         }
 
-        public function use(RouteMiddlewareModel $middleware) {
+        public function use(MiddlewareModel $middleware) {
             return $this->addMiddleware($middleware);
         }
 
@@ -60,7 +51,7 @@
         // }
 
         protected function addMiddleware(
-            RouteMiddlewareModel $middleware,
+            MiddlewareModel $middleware,
             ?string $rel_id = null, 
             ?int $rel_offset = 0
         ): self {
@@ -85,18 +76,37 @@
             return $this;
         }
 
-        public function handle(Request &$req, Response &$res) {
-            try {
-                // Allow middleware to modify the request before passing it to the handler.
-                $this->callMiddlewares(Middleware::MAP_REQUEST, $req, $res);
-                
-                call_user_func($this->callback, $req, $res);
-
-                // Allow middleware to modify the response before passing it to the handler.
-                $this->callMiddlewares(Middleware::MAP_RESPONSE, $req, $res);
-            } catch(\Exception $e) {
-                return Lib::throwIfDev($e, $e);
+        protected function callMiddlewares(Request $req, Response $res, string $method) {
+            foreach ($this->getAllMiddlewares() as $middleware) {               
+                if($middleware instanceof MiddlewareObjectModel) {
+                    $middleware->handle([ $req, $res ], $method);
+                } else if ($middleware instanceof MiddlewareCallableModel) {
+                    if(!$middleware->matchesMethod($method)) continue;
+                    $middleware->handle([ $req, $res ]);
+                }
             }
+        }
+
+        public function matchesMethod(string $method): bool {
+            if($this->method == 'any') return true;
+            return (strtolower($this->method) == strtolower($method));
+        }
+
+        public function matchesUrl(UrlModel $url): bool {
+            return $url->matchesTemplate($this->urlTemplate);
+        }
+
+        public function getParams(UrlModel $url): array {
+            $params = [];
+            
+            foreach($this->urlTemplate->getPartsMap() as $index => $part) {
+                if($part['type'] != 'parameter') continue;
+
+                $value = $url->getValue($index);
+                $params[$part['parameter_name']] = $value;
+            }
+
+            return $params;
         }
 
         protected function getMiddlewareIndex(string $id, int $type): int|null {
@@ -111,12 +121,6 @@
         }
 
         protected function getAllMiddlewares(): array {
-            return array_merge((Overrides::get(Router::class))::$globalMiddlewares, $this->middlewares);
-        }
-
-        protected function callMiddlewares(string $method, Request &$req, Response &$res) {
-            foreach ($this->getAllMiddlewares() as $middleware) {               
-                $result = $middleware->handle($method, $req, $res);
-            }
+            return array_merge((Router::getOverride())::$globalMiddlewares, $this->middlewares);
         }
     }

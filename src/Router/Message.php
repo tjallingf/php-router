@@ -2,13 +2,10 @@
     namespace Router;
 
     use Router\Models\CookieModel;
-    use Router\Config;
-    use Exception;
+    use Router\Helpers\Overridable;
     use stdClass;
 
-    abstract class Message {
-        private static $instance;
-        private static bool $invokedExtend = false;
+    abstract class Message extends Overridable {
         public array $headers = [];
         public array $cookies = [];
         public array $body    = [];
@@ -43,18 +40,5 @@
 
         public function getBody(): string {
             return implode("\r\n", $this->body);
-        }
-
-        public static function get(...$args) {
-            if(!isset(static::$instance) || static::$instance::class != static::class) {
-                static::$instance = new static(...$args);
-            }
-
-            if(!static::$invokedExtend && method_exists(static::$instance, 'extend')) {
-                call_user_func([ static::$instance, 'extend']);
-                static::$invokedExtend = true;
-            }
-
-            return static::$instance;
         }
     }

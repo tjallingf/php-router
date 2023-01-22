@@ -4,10 +4,11 @@
     use Router\Lib;
     use Router\Config;
     use PHPHtmlParser\Dom\Node\HtmlNode;
-    use Router\Dom;
+    use Router\Helpers\Dom;
     use Router\Client;
+    use Router\Helpers\Overridable;
 
-    class ClientPreamble {
+    class ClientPreamble extends Overridable {
         public static function toNode(string $preamble_code): HtmlNode {
             if(empty($preamble_code)) return new HtmlNode('root');
             return (new Dom($preamble_code))->root;
@@ -17,10 +18,10 @@
             switch(Config::get('client.developmentModeEnabled')) {
                 case true:
                     if(count(Client::$includedScripts) || count(Client::$includedStylesheets))
-                        return self::getOne('dev_vite_refresh_runtime');
+                        return static::getOne('dev_vite_refresh_runtime');
                     break;
                 default:
-                    return self::getOne('vite_plugin_legacy_head');
+                    return static::getOne('vite_plugin_legacy_head');
             }
 
             return '';
@@ -30,10 +31,10 @@
             switch(Config::get('client.developmentModeEnabled')) {
                 case true:
                     if(count(Client::$includedScripts) || count(Client::$includedStylesheets))
-                        return self::getOne('dev_check_client_status');
+                        return static::getOne('dev_check_client_status');
                     break;
                 default:
-                    return self::getOne('vite_plugin_legacy_body');
+                    return static::getOne('vite_plugin_legacy_body');
             }
 
             return '';
@@ -43,7 +44,7 @@
             $code = '';
 
             foreach ($names as $name) {
-                $code .= self::getOne($name);
+                $code .= static::getOne($name);
             }
 
             return $code;
