@@ -1,8 +1,7 @@
 <?php
     namespace Router\Models;
 
-    use Router\Client;
-    use Router\Lib;
+    use Router\Helpers\ClientPreamble;
     use PHPHtmlParser\Dom\Node\HtmlNode;
 
     class ViewModel extends ComponentModel {
@@ -23,11 +22,11 @@
 
                 // Add head preambless to start of <head>
                 if($head instanceof HtmlNode)
-                    $head->insertBefore(Lib::toNode(Client::getHeadPreamble()), $head->firstChild()->id());
+                    $head->insertBefore(ClientPreamble::toNode(ClientPreamble::getHeadCode()), $head->firstChild()->id());
 
                 // Add body preambles to end of <body>
                 if($body instanceof HtmlNode)
-                    $body->addChild(Lib::toNode(Client::getBodyPreamble()));
+                    $body->addChild(ClientPreamble::toNode(ClientPreamble::getBodyCode()));
             }
 
             return $node;

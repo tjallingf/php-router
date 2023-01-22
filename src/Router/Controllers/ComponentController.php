@@ -7,27 +7,27 @@
     use Exception;
 
     class ComponentController extends Controller {
-        protected const DIR        = '/resources/components';
-        protected const TYPE_NAME  = 'component';
-        protected const MODEL      = ComponentModel::class;
+        public static string $dir = '/resources/components';
+        const TYPE = 'component';
+        const MODEL = ComponentModel::class;
 
-        protected static array $data = [];
-
-        public static function find(string $id) {
-            $filename = Lib::joinPaths(Lib::getRootDir(), static::DIR, $id);
-            
-            if(file_exists("$filename.php")) return "$filename.php";
-            if(file_exists("$filename.html")) return "$filename.html";
-            
-            return null;
+        public static function exists(string $name): bool {
+            return is_file(self::getPath($name));
         }
 
-        public static function findAndConstruct(string $id, array $data = []) {
-            if(!self::scan($id))
-                return new Exception('Cannot find '.static::TYPE_NAME. " '$id'.",);
+        protected static function getPath(string $name): string {
+            $filename = lib::joinPaths(Lib::getRootDir(), static::$dir, $name);
+            
+            if(file_exists("$filename.php")) return "$filename.php";
+            return "$filename.html";
+        }
+
+        public static function find(string $name, array $data = []) {
+            if(!self::exists($name))
+                return new Exception('Cannot find '.static::TYPE. " '$name'.",);
 
             $model = static::MODEL;
-            return new $model(self::find($id), $data);
+            return new $model(self::getPath($name), $data);
         }
     }
 ?>

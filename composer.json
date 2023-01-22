@@ -13,8 +13,8 @@
         "test": "./vendor/bin/phpunit tests"
     },
     "require": {
-        "php": ">=8.0",
-        "ext-xml": ">=8.0",
+        "php": ">=7.2",
+        "ext-xml": ">=7.2",
         "ext-mbstring": "*",
         "ext-zlib": "*",
         "ext-curl": "*",

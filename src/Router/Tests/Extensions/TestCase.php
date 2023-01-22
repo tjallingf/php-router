@@ -5,7 +5,7 @@
         public function __construct(...$args) {
             parent::__construct(...$args);
             
-            // $this->setOutputCallback(function() {});
+            $this->setOutputCallback(function() {});
         }
 
         public static function captureOutputString(callable $callback) {

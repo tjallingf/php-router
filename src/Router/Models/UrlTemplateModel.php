@@ -23,7 +23,7 @@
             foreach ($items as $index => $item) {
                 $item = trim($item);
 
-                // Determine whether the item is a {parameter}
+                // Determine whether the item is an url {parameter}
                 $is_parameter = (str_starts_with($item, '{') && str_ends_with($item, '}'));
 
                 // Determine whether the part is required to exist in 
