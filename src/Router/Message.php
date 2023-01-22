@@ -28,7 +28,7 @@
 
         public function getHeader(string $name): array {
             $name = strtolower(trim($name));
-            $value = $this->headers[$name];
+            $value = @$this->headers[$name];
 
             return is_array($value) ? $value : [];
         }
@@ -41,7 +41,7 @@
             return !empty($this->getHeader($name));
         }
 
-        public function getBodyAsString(): string {
+        public function getBody(): string {
             return implode("\r\n", $this->body);
         }
 

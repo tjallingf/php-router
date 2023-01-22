@@ -2,7 +2,7 @@
     use Router\Tests\Extensions\TestCase;
     use Router\Controllers\ViewController;
     use Router\Models\ViewModel;
-    use Router\Helpers\Dom;
+    use Router\Dom;
     use PHPHtmlParser\Dom\Node\HtmlNode;
 
     final class ViewTest extends TestCase {

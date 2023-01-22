@@ -2,12 +2,6 @@
     namespace Router\Tests\Extensions;
 
     class TestCase extends \PHPUnit\Framework\TestCase {
-        public function __construct(...$args) {
-            parent::__construct(...$args);
-            
-            $this->setOutputCallback(function() {});
-        }
-
         public static function captureOutputString(callable $callback) {
             ob_start();
             call_user_func($callback);

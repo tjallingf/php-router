@@ -1,7 +1,7 @@
 <?php
     use Router\Tests\Extensions\TestCase;
     use Router\Controllers\ConfigController;
-    use Router\Helpers\Config;
+    use Router\Config;
 
     final class ConfigTest extends TestCase {
         public function testCustomConfigFromController() {

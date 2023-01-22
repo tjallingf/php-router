@@ -1,7 +1,7 @@
 <?php
     namespace Router\Models;
 
-    use Router\Helpers\ClientPreamble;
+    use Router\ClientPreamble;
     use PHPHtmlParser\Dom\Node\HtmlNode;
 
     class ViewModel extends ComponentModel {

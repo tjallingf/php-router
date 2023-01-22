@@ -1,11 +1,11 @@
 <?php 
-    namespace Router\Helpers;
+    namespace Router;
 
     use Router\Lib;
-    use Router\Helpers\Config;
+    use Router\Config;
     use PHPHtmlParser\Dom\Node\HtmlNode;
-    use Router\Helpers\Dom;
-    use Router\Helpers\Client;
+    use Router\Dom;
+    use Router\Client;
 
     class ClientPreamble {
         public static function toNode(string $preamble_code): HtmlNode {

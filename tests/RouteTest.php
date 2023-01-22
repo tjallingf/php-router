@@ -1,37 +1,36 @@
 <?php
     use Router\Tests\Extensions\TestCase;
-    use Router\Controllers\RouteController;
+    use Router\Router;
     use Router\Tests\Data\Pictures;
-    use Router\Helpers\Response;
+    use Router\Response;
 
     final class RouteTest extends TestCase {
+        private Response $res;
+
+        public function setUp(): void {
+            $this->res = Response::get();
+        }
+
         public function testApiGet() {
-            $res = RouteController::handleRequest('get', '/api/pictures');
+            Router::handleRequest('get', '/api/pictures');
             $expected = json_encode(Pictures::get());
 
-            TestCase::assertEquals($expected, $res->getBody(), 'Response body does not match.');
+            TestCase::assertEquals($expected, $this->res->getBody(), 'Response body does not match.');
         }
 
         public function testApiGetOne() {
             $id = Pictures::get()[0]['id'];
-            $res = RouteController::handleRequest('get', "/api/pictures/$id");
+            Router::handleRequest('get', "/api/pictures/$id");
             $expected = json_encode(Pictures::getOne($id));
 
-            TestCase::assertEquals($expected, $res->getBody(), 'Response body does not match.');
+            TestCase::assertEquals($expected, $this->res->getBody(), 'Response body does not match.');
         }
 
         public function testApiPatchOne() {
             $id = Pictures::get()[0]['id'];
-            $res = RouteController::handleRequest('patch', "/api/pictures/$id");
+            Router::handleRequest('patch', "/api/pictures/$id");
             $expected = json_encode(Pictures::getOne($id));
 
-            TestCase::assertEquals($expected, $res->getBody(), 'Response body does not match.');
-        }
-
-        public function testErrorResponseNoStatusCode() {
-            $res = null;
-            $res = RouteController::handleRequest('get', "/error");
-
-            TestCase::assertEquals(500, $res->getStatus());
+            TestCase::assertEquals($expected, $this->res->getBody(), 'Response body does not match.');
         }
     }

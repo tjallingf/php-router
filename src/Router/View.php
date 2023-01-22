@@ -1,10 +1,10 @@
 <?php 
-    namespace Router\Helpers;
+    namespace Router;
 
     use Router\Controllers\ViewController;
 
-    class Views {
-        static function find(string $name, array $data = []) {
+    class View {
+        static function get(string $name, array $data = []) {
             if(!ViewController::exists($name))
                 return new \Exception("Cannot find view '{$name}'.", 404);
                 

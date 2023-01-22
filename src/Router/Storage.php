@@ -1,5 +1,5 @@
 <?php
-    namespace Router\Helpers;
+    namespace Router;
 
     use Router\Controllers\StorageController;
 

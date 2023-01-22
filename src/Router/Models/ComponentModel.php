@@ -1,7 +1,7 @@
 <?php
     namespace Router\Models;
 
-    use Router\Helpers\Dom;
+    use Router\Dom;
     use Router\Controllers\ComponentController;
     use PHPHtmlParser\Dom\Node\HtmlNode;
     use PHPHtmlParser\Dom\Node\AbstractNode;

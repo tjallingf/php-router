@@ -1,20 +1,13 @@
 <?php
-    namespace Router\Helpers;
+    namespace Router;
 
-    use Router\Helpers\Route;
-    use Router\Helpers\Response;
-    use Router\Helpers\Request;
-    use Router\Helpers\Config;
-    use Router\Helpers\Client;
-    use Router\Controllers\ConfigController;
+    use Router\Config;
+    use Router\Overrides;
+    use Router\Router;
     use Router\Controllers\RouteController;
-    use Router\Controllers\MiddlewareController as MwController;
-    use Router\Controllers\UserController;
-    use Router\Lib;
+    use Router\Controllers\ConfigController;
 
-    require(__DIR__.'/../../polyfills.php');
-
-    class Loader {
+    final class Loader {
         protected static string $root_dir;
 
         public static function load(string $root_dir, array $config = []) {
@@ -31,18 +24,11 @@
                 Lib::getRootDir(), 
                 Config::get('client.rootDir'), 
                 Config::get('client.outDir'))));
-
-            // Define middlewares
-            MwController::update('Response', Response::class);
-            MwController::update('Request', Request::class);
-            MwController::update('Client', Client::class);
-            MwController::update('UserController', UserController::class);
-            MwController::update('RouteController', RouteController::class);
         }
 
         public static function loadRouter() {
             // Load routes
-            MwController::find('RouteController')::index();
+            (Overrides::get(RouteController::class))::index();
 
             // If a request was sent, handle it
             if(isset($_SERVER['REQUEST_METHOD']) && isset($_SERVER['REQUEST_URI'])) {
@@ -51,10 +37,18 @@
                 
                 // Get request uri
                 $url_path = '/'.trim(str_replace(Lib::getRelativeRootDir(), '', $_SERVER['REQUEST_URI']), '/');
+                
+                // Get headers array
+                $headers = getallheaders();
 
-                MwController::find('RouteController')::handleRequest(
+                // Get body
+                $body = file_get_contents('php://input');
+
+                (Overrides::get(Router::class))::handleRequest(
                     $method,
-                    $url_path
+                    $url_path,
+                    $headers,
+                    $body
                 );
             }
         }

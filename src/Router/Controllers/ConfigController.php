@@ -22,12 +22,9 @@
             'router' => [
                 'baseUrl'                   => '/',
                 'errorView'                 => 'error'
-<<<<<<< HEAD
             ],
             'overrides' => [
                 'namespace'                 => null
-=======
->>>>>>> 6d3a16e6d2c6fa1d91005236ee3a47a39de7d8a3
             ]
         ];
         

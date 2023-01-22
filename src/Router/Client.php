@@ -1,7 +1,7 @@
 <?php 
-    namespace Router\Helpers;
+    namespace Router;
 
-    use Router\Helpers\Config;
+    use Router\Config;
     use Router\Lib;
 
     class Client {

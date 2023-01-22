@@ -1,7 +1,7 @@
 <?php
     namespace Router;
 
-    use Router\Helpers\Loader;
+    use Router\Loader;
 
     class Lib {
         public static function requireAll($dir) {

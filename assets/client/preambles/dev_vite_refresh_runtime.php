@@ -1,4 +1,4 @@
-<?php use Router\Helpers\Config; ?>
+<?php use Router\Config; ?>
 <script type="module">
     import RefreshRuntime from '<?= 'http://localhost:'.Config::get('client.port').'/@react-refresh'; ?>';
     RefreshRuntime.injectIntoGlobalHook(window);

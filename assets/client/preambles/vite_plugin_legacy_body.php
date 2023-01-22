@@ -1,6 +1,6 @@
 <?php 
-    use Router\Helpers\Client;
-    use Router\Helpers\Config;
+    use Router\Client;
+    use Router\Config;
 
     $input_file_filename = pathinfo(Config::get('client.inputFile'), PATHINFO_FILENAME); 
 
