@@ -5,8 +5,10 @@
     use Router\Models\ViewModel;
 
     class ViewController extends ComponentController {
-        public static string $dir = '/resources/views';
-        const TYPE = 'view';
-        const MODEL = ViewModel::class;
+        protected const DIR       = '/resources/views';
+        protected const TYPE_NAME = 'view';
+        protected const MODEL     = ViewModel::class;
+        
+        protected static array $data = [];
     }
 ?>

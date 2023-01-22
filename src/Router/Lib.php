@@ -1,9 +1,12 @@
 <?php
     namespace Router;
 
-    use Router\Helpers\Loader;
+    use Router\Loader;
+    use Router\Helpers\Dom;
+    use PHPHtmlParser\Dom\Node\HtmlNode;
+    use Exception;
 
-    class Lib {
+    final class Lib {
         public static function requireAll($dir) {
             foreach (self::recursiveGlob($dir, '*.php') as $file) require_once $file;
         }
@@ -74,5 +77,17 @@
             $document_root = rtrim(str_replace('\\', '/', realpath($_SERVER['DOCUMENT_ROOT'])), '/');
             
             return substr(self::getRootDir(), strlen($document_root));
+        }
+
+        public static function throwIfDev(Exception $e, $return = null) {
+            if(APP_MODE_DEV)
+                throw $e;
+
+            return $return;
+        }
+        
+        public static function toNode(string $node_string): HtmlNode {
+            if(empty($node_string)) return new HtmlNode('root');
+            return (new Dom($node_string))->root;
         }
     }

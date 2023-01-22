@@ -67,7 +67,7 @@
             $name = $node->tag->name();
             $props = self::getProps($node);
 
-            $component = ComponentController::find($name, $props);
+            $component = ComponentController::findAndConstruct($name, $props);
 
             if($component instanceof Exception)
                 return '<span>'.$component->getMessage().'</span>';

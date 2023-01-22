@@ -10,7 +10,7 @@
         private static Dom $view_dom;
 
         public static function setUpBeforeClass(): void {
-            self::$view = ViewController::find('test', [
+            self::$view = ViewController::findAndConstruct('test', [
                 'name' => 'John Doe'
             ]);
 
