@@ -1,7 +1,7 @@
 <?php
-    namespace Router;
+    namespace Router\Exceptions;
 
-    class Exception extends \Exception {
+    class ResponseException extends \Exception {
         protected ?int $statusCode = null;
 
         public function __construct(string $message, ?int $status_code = null) {

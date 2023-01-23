@@ -4,15 +4,15 @@
     use Router\Lib;
     use Router\Models\ComponentModel;
     use Router\Models\ResponseCookieModel;
+    use Router\Exceptions\ResponseException;
     use Router\Models\ViewModel;
-    use Router\Router;
-    use Router\Exception;
 
     class Response extends Message {
         public array $headers   = [];
         public array $cookies   = [];
         public array $body      = [];
         public int $statusCode  = 200;
+        protected bool $closed  = false;
 
         public function __construct() {
             parent::__construct();
@@ -25,7 +25,7 @@
             if($data instanceof ViewModel || $data instanceof ComponentModel)
                 $data = $data->render();
             
-            if($data instanceof Exception)
+            if($data instanceof \Exception)
                 throw $data;
 
             array_push($this->body, $data);
@@ -39,16 +39,38 @@
 
             return $this;
         }
-        
-        public function sendStatusCode(?int $status_code = null): self {
-            if(isset($status_code)) {
-                if(!array_key_exists($status_code, static::STATUS_CODES))
-                    throw new \Exception("Invalid status code: '$status_code'.");
 
-                $this->statusCode = $status_code;
+        public function sendError(\Exception $e): void {
+            $data = [
+                'error'       => str_replace('"', '\'', $e->getMessage()),
+                'status_code' => ($e instanceof ResponseException
+                    ? $e->getStatusCode() : 500) ?? 500
+            ];
+
+            if(APP_MODE_DEV) {
+                if($e->getFile()) $data['file']  = $e->getFile();
+                if($e->getLine()) $data['line']  = $e->getLine();
+                if(isset($route)) $data['route'] = $route->__toString();
             }
 
+            $this
+                ->clearBody()
+                ->sendJson($data, JSON_UNESCAPED_SLASHES)
+                ->sendStatusCode($data['status_code'])
+                ->end();
+        }
+        
+        public function sendStatusCode(int $status_code): self {
+            if(is_null(static::getStatusMessage($status_code)))
+                $this->sendError(new ResponseException("Status code '$status_code' does not exist", 500));
+
+            $this->statusCode = $status_code;
+
             return $this;
+        }
+
+        public function getStatusMessage(?int $status_code = null): string|null {
+            return @static::STATUS_CODES[$status_code];
         }
 
         public function sendHeader(string $name, string $value = '', bool $replace = false): self {
@@ -80,13 +102,15 @@
         }
         
         public function end(): void {
+            if($this->closed) return;
+
             $this->endStatusCode();    
             $this->endCookies();
             $this->endHeaders();
             $this->endBody();
             $this->close();
 
-            exit();
+            $this->closed = true;
         }
 
         public function createCookie(            

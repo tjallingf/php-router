@@ -22,9 +22,9 @@
             return Lib::arrayGetByPath($contents, $keypath);
         }
 
-        public static function edit(string $path, $value): string {
+        public static function edit(string $path, $value): void {
             list($filepath, $keypath, $filename) = static::splitPath($path);
-            if(!isset($filepath)) return static::class;
+            if(!isset($filepath)) return;
             
             $dirpath = dirname($filepath);
             
@@ -39,8 +39,6 @@
             }
 
             file_put_contents($filepath, json_encode($contents));
-
-            return static::class;
         }
 
         protected static function splitPath(string $item): array {

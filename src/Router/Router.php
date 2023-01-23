@@ -7,7 +7,7 @@
     use Router\Controllers\RouteController;
     use Router\Models\MiddlewareModel;
     use Router\Helpers\Overridable;
-    use Router\Exception;
+    use Router\Exceptions\ResponseException;
 
     class Router extends Overridable {
         public static bool $closed = false;
@@ -17,7 +17,7 @@
 
         public static function use(MiddlewareModel $middleware): string {
             if(static::$closed)
-                throw new Exception("Trying to add middleware to ".static::class." when closed.", 500);
+                throw new \Exception("Trying to add middleware to ".static::class." when closed.");
 
             array_push(static::$globalMiddlewares, $middleware);
 
@@ -45,27 +45,11 @@
             }
                 
             // Throw 404 error if no route can be found.
-            static::$res->throw('Route not found', 404);
+            static::handleException(new ResponseException('Route not found', 404));
         }
-  
-        public static function handleException(\Exception $e, ?RouteModel $route = null): void {
-            echo('A');
-            $data = [
-                'error'       => str_replace('"', '\'', $e->getMessage()),
-                'status_code' => ($e instanceof Exception
-                    ? $e->getStatusCode() : 500) ?? 500
-            ];
 
-            if(APP_MODE_DEV) {
-                if($e->getFile()) $data['file']  = $e->getFile();
-                if($e->getLine()) $data['line']  = $e->getLine();
-                if(isset($route)) $data['route'] = $route->__toString();
-            }
-
-            static::$res
-                ->clearBody()
-                ->sendJson($data, JSON_UNESCAPED_SLASHES)
-                ->sendStatusCode($data['status_code']);
+        public static function handleException(\Exception $e): void {
+            static::$res->sendError($e);
         }
 
         public static function errorHandler(int $level, string $message): void {
@@ -98,8 +82,8 @@
                 $route->getParams($url)
             );
 
-            set_error_handler([ static::class, 'errorHandler' ], E_ALL & ~E_WARNING);
             register_shutdown_function([ static::class, 'exitHandler' ]);
+            set_error_handler([ static::class, 'errorHandler' ], E_ALL & ~E_WARNING);
 
             try {
                 $route->handle(static::$req, static::$res);

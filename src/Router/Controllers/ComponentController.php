@@ -4,7 +4,7 @@
     use Router\Models\ComponentModel;
     use Router\Controllers\Controller;
     use Router\Lib;
-    use Router\Exception;
+    use Router\Exceptions\ResponseException;
 
     class ComponentController extends Controller {
         protected static string $dir = '/resources/components';
@@ -23,7 +23,7 @@
             $filepath = static::getPath($name);
             
             if(!isset($filepath))
-                throw new Exception('Cannot find '.static::TYPE_NAME. " '$name'", 404);
+                throw new ResponseException('Cannot find '.static::TYPE_NAME. " '$name'", 404);
 
             return new (static::$model::getOverride())($filepath, $data);
         }

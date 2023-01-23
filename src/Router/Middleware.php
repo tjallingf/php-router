@@ -2,8 +2,6 @@
     namespace Router;
 
     use Router\Helpers\Overridable;
-    use Router\Exception;
-    use Router\Models\MiddlewareModel;
     use Router\Models\MiddlewareObjectModel;
     use Router\Models\MiddlewareCallableModel;
 
@@ -22,7 +20,7 @@
             // If $handler is a class string, construct it
             if(is_string($handler)) {
                 if(!class_exists($handler))
-                    throw new Exception("Class '$handler' does not exist", 500);
+                    throw new \Exception("Class '$handler' does not exist");
                 
                 $handler = new $handler();
             }
@@ -36,7 +34,7 @@
             ?string $callable_as_method = null
         ) {  
             if(array_key_exists($id, static::$ids))
-                throw new Exception("Middleware with id '$id' already exists", 500);
+                throw new \Exception("Middleware with id '$id' already exists");
             
             static::$ids[$id] = true;
             if(is_callable($handler)) {

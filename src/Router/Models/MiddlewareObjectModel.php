@@ -1,7 +1,6 @@
 <?php
     namespace Router\Models;
 
-    use Router\Exception;
     use Router\Models\MiddlewareModel;
 
     class MiddlewareObjectModel extends MiddlewareModel {
@@ -25,7 +24,7 @@
             $must_implement = static::INTERFACES_NAMESPACE.'\\'.ucfirst($method);
 
             if(!interface_exists($must_implement))
-                throw new Exception("Interface '$must_implement' does not exist", 500);
+                throw new \Exception("Interface '$must_implement' does not exist");
 
 
             if(!method_exists($this->object, $method))
