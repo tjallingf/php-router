@@ -6,6 +6,7 @@
     use Router\Models\RouteModel;
     use Router\Models\UrlTemplateModel;
     use Router\Controllers\RouteController;
+    use Router\Exceptions\ResponseException;
 
     class Route {
         protected static $globalMiddleware = [];
@@ -29,6 +30,61 @@
             RouteController::getOverride()::create(null, $route);
 
             return $route;
+        }
+
+        public static function api(
+            string $path,
+            string|object $controller, 
+            array $methods = [ 
+                'index'  => 'index', 
+                'find'   => 'find', 
+                'create' => 'create',
+                'edit'   => 'edit',
+                'update' => 'update'
+            ]
+        ) {
+            if(isset($methods['index'])) {
+                static::get($path, function($req, $res) use ($controller, $methods) {
+                    $data = call_user_func([ $controller, $methods['index']]);
+                    return $res->sendJson($data);
+                });
+            }
+
+            if(isset($methods['find'])) {
+                static::get($path.'/{id}', function($req, $res) use ($controller, $methods) {
+                    $value = call_user_func([ $controller, $methods['find']], $req->getParam('id'));
+                    if(!isset($value)) throw new ResponseException(null, 404);
+                    
+                    return $res->sendJson($value);
+                });
+            }
+
+            if(isset($methods['create'])) {
+                static::post($path, function($req, $res) use ($controller, $methods) {
+                    call_user_func([ $controller, $methods['create']], $req->getParam('id'), $req->getBody());
+                    $value = (array) call_user_func([ $controller, $methods['find']], $req->getParam('id'));
+
+                    return $res->sendJson($value);
+                });
+            }
+
+            if(isset($methods['edit'])) {
+                static::patch($path.'/{id}', function($req, $res) use ($controller, $methods) {
+                    call_user_func([ $controller, $methods['edit']], $req->getParam('id'), $req->getBody());
+                    $value = (array) call_user_func([ $controller, $methods['find']], $req->getParam('id'));
+                    
+                    return $res->sendJson($value);
+                });
+            }
+
+            if(isset($methods['update'])) {
+                static::put($path.'/{id}', function($req, $res) use ($controller, $methods) {
+                    call_user_func([ $controller, $methods['update']], $req->getParam('id'), $req->getBody());
+                    $value = (array) call_user_func([ $controller, $methods['find']], $req->getParam('id'));
+ 
+                    return $res->sendJson($value);
+                });
+            }
         }
 
         /* Aliases for Route::listen() */

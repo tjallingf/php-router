@@ -5,16 +5,14 @@
     use Router\Models\Model;
     
     class UrlModel extends Model {
-        protected string $path;
         protected array $valuesMap = [];
 
         public function __construct(string $path) {
-            $this->path = $path;
             $this->valuesMap = $this->pathToValuesMap($path);
         }
 
         public function __toString(): string {
-            return $this->path;
+            return '/'.implode('/', $this->valuesMap);
         }
 
         public function matchesTemplate(UrlTemplateModel $template): bool {
@@ -42,12 +40,8 @@
             return $this->valuesMap;
         }
 
-        public function isFile() {
-            return (strpos($this->path, '.') !== false);
-        }
-
         protected function pathToValuesMap(string $path): array {
-            $values = explode('/', trim(strtok($path, '?'), '/'));            
+            $values = preg_split('/\/+/', trim(strtok($path, '?'), '/'));            
             return $values;
         }
 

@@ -4,16 +4,26 @@
     use Router\Models\Model;
 
     class UrlTemplateModel extends Model {
-        protected string $path;
         protected array $partsMap = [];
 
         public function __construct(string $path) {
-            $this->path = $path;
             $this->partsMap = $this->pathToPartsMap($path);
         }
 
         public function __toString(): string {
-            return $this->path;
+            $string = '';
+
+            foreach ($this->partsMap as $part) {
+                if($part['type'] == 'parameter') {
+                    $name = '{'.$part['parameter_name'].($part['is_required'] ? '?' : '').'}';
+                } else {
+                    $name = $part['validation']['expect_value'];
+                }
+
+                $string .= $name.'/';
+            }
+
+            return '/'.rtrim($string, '/');
         }
 
         public function getPartsMap() {
@@ -25,7 +35,7 @@
         }
 
         protected function pathToPartsMap(string $template_path) {
-            $items = explode('/', trim($template_path, '/'));
+            $items = preg_split('/\/+/', trim($template_path, '/'));
             $map = [];
             
             foreach ($items as $index => $item) {

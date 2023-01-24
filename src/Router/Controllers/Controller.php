@@ -10,10 +10,8 @@
             return static::$data;
         }
         
-        public static function store(array $data): string {
+        public static function store(array $data): void {
             static::$data = $data;
-
-            return static::class;
         }
 
         public static function find(string $id) {

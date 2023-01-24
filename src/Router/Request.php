@@ -1,31 +1,36 @@
 <?php
     namespace Router;
     
+    use Router\Message;
     use Router\Models\UrlModel;
     use Router\Models\RequestCookieModel;
-    use Router\Message;
+    use Router\Models\RouteModel;
 
     class Request extends Message {       
         public string $method;
         public UrlModel $url;
+        public string $relativeUrl;
         public array $params;
         public array $query;
+        public ?RouteModel $route;
 
         public function __construct(
             string $method, 
             UrlModel $url, 
             array $headers, 
             string $body,
-            array $params
+            RouteModel $route
         ) {
             parent::__construct();
 
             $this->method = $method;
             $this->url = $url;
+            $this->relativeUrl = new UrlModel('/'.trim(substr(trim($url, '/'), strlen(Config::get('router.baseUrl'))), '/'));
+            $this->route = $route;
 
             $this->headers = $this->parseHeaders($headers);
             $this->cookies = $this->parseCookies($this->getHeaderLine('cookie'));
-            $this->params = $params;
+            $this->params = $this->route->getParams($url);
             $this->query = $this->parseQuery((string) $url);
             $this->body = $this->parseBody($body);
         }

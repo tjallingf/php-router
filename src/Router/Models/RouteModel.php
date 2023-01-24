@@ -8,6 +8,7 @@
     use Router\Response;
     use Router\Middleware;
     use Router\Router;
+    use Router\Config;
     use Router\Models\Model;
     use Router\Models\UrlModel;
     use Router\Models\MiddlewareModel;
@@ -32,7 +33,8 @@
             // Allow middleware to modify the request before passing it to the handler.
             $this->callMiddlewares($req, $res, Middleware::MAP_REQUEST);
             
-            call_user_func($this->callback, $req, $res);
+            if(is_callable($this->callback))
+                call_user_func($this->callback, $req, $res);
 
             // Allow middleware to modify the response before passing it to the handler.
             $this->callMiddlewares($req, $res, Middleware::MAP_RESPONSE);
@@ -93,6 +95,11 @@
         }
 
         public function matchesUrl(UrlModel $url): bool {
+            return $url->matchesTemplate($this->urlTemplate);
+        }
+
+        public function matchesRelativeUrl(string $url): bool {
+            $url = new UrlModel(Config::get('router.baseUrl').$url);
             return $url->matchesTemplate($this->urlTemplate);
         }
 

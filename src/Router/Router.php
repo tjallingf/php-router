@@ -37,15 +37,14 @@
             $method = trim(strtolower($method));
 
             // Find route
-            $found_route = (RouteController::getOverride())::find($method, $url);
+            $route = (RouteController::getOverride())::find($method, $url);
             
-            if($found_route) {
-                static::handleRoute($found_route, $method, $url, $headers, $body);
+            if(isset($route)) {
+                static::handleRoute($method, $url, $headers, $body, $route);
                 return;
             }
-                
-            // Throw 404 error if no route can be found.
-            static::handleException(new ResponseException('Route not found', 404));
+
+            static::handleException(new ResponseException('Route Not Found', 404));  
         }
 
         public static function handleException(\Exception $e): void {
@@ -68,26 +67,31 @@
         }
  
         protected static function handleRoute(
-            RouteModel $route,
             string $method, 
             UrlModel $url, 
             array $headers, 
-            string $body
+            string $body,
+            RouteModel $route
         ): void {
             static::$req = new (Request::getOverride())(
                 $method, 
                 $url, 
                 $headers, 
                 $body, 
-                $route->getParams($url)
+                $route
             );
 
             register_shutdown_function([ static::class, 'exitHandler' ]);
-            set_error_handler([ static::class, 'errorHandler' ], E_ALL & ~E_WARNING);
+            // set_error_handler([ static::class, 'errorHandler' ], E_ALL & ~E_WARNING);
 
             try {
                 $route->handle(static::$req, static::$res);
             } catch(\Exception $e) {
+                // If app is in development mode, throw the exception if it is not a ResponseException
+                if(APP_MODE_DEV && get_class($e) !== ResponseException::class) {
+                    throw $e;
+                }
+
                 static::handleException($e, $route);
             }
         }
