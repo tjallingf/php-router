@@ -2,7 +2,7 @@
     namespace Router\Controllers;
 
     use Router\Lib;
-    use Router\Models\UrlModel;
+    use Router\Models\UrlPathModel;
     use Router\Controllers\Controller;
 
     class RouteController extends Controller {
@@ -17,7 +17,7 @@
             return static::$data ?? [];
         }
 
-        public static function find(string $method, UrlModel $url = null) {
+        public static function find(string $method, UrlPathModel $url = null) {
             $found_route = null;
 
             foreach (static::index() as $route) {

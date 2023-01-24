@@ -3,7 +3,7 @@
 
     use Router\Models\Model;
 
-    class UrlTemplateModel extends Model {
+    class UrlPathTemplateModel extends Model {
         protected array $partsMap = [];
 
         public function __construct(string $path) {
@@ -15,7 +15,7 @@
 
             foreach ($this->partsMap as $part) {
                 if($part['type'] == 'parameter') {
-                    $name = '{'.$part['parameter_name'].($part['is_required'] ? '?' : '').'}';
+                    $name = '{'.$part['parameter_name'].($part['is_required'] ? '' : '?').'}';
                 } else {
                     $name = $part['validation']['expect_value'];
                 }

@@ -2,7 +2,7 @@
     namespace Router;
 
     use Router\Response;
-    use Router\Models\UrlModel;
+    use Router\Models\UrlPathModel;
     use Router\Models\RouteModel;
     use Router\Controllers\RouteController;
     use Router\Models\MiddlewareModel;
@@ -26,18 +26,18 @@
 
         public static function handleRequest(
             string $method, 
-            string $url_path, 
+            string $url, 
             ?array $headers = [], 
             ?string $body = ''
         ): void {
             static::$closed = true;
             static::$res = new (Response::getOverride());
 
-            $url = new (UrlModel::getOverride())($url_path);
+            $url_path = new (UrlPathModel::getOverride())($url);
             $method = trim(strtolower($method));
 
             // Find route
-            $route = (RouteController::getOverride())::find($method, $url);
+            $route = (RouteController::getOverride())::find($method, $url_path);
             
             if(isset($route)) {
                 static::handleRoute($method, $url, $headers, $body, $route);
@@ -68,7 +68,7 @@
  
         protected static function handleRoute(
             string $method, 
-            UrlModel $url, 
+            string $url, 
             array $headers, 
             string $body,
             RouteModel $route

@@ -1,10 +1,10 @@
 <?php
     namespace Router\Models;
 
-    use Router\Models\UrlTemplateModel;
+    use Router\Models\UrlPathTemplateModel;
     use Router\Models\Model;
     
-    class UrlModel extends Model {
+    class UrlPathModel extends Model {
         protected array $valuesMap = [];
 
         public function __construct(string $path) {
@@ -15,7 +15,7 @@
             return '/'.implode('/', $this->valuesMap);
         }
 
-        public function matchesTemplate(UrlTemplateModel $template): bool {
+        public function matchesTemplate(UrlPathTemplateModel $template): bool {
             $is_match = true;
             $i_max = max(count($template->getPartsMap()), count($this->getValuesMap()));
 

@@ -10,16 +10,16 @@
     use Router\Router;
     use Router\Config;
     use Router\Models\Model;
-    use Router\Models\UrlModel;
+    use Router\Models\UrlPathModel;
     use Router\Models\MiddlewareModel;
 
     class RouteModel extends Model {
         protected string $method;
-        protected UrlTemplateModel $urlTemplate;
+        protected UrlPathTemplateModel $urlTemplate;
         protected $callback;
         protected array $middlewares = [];
         
-        public function __construct(string $method, UrlTemplateModel $url_template, callable $callback) {
+        public function __construct(string $method, UrlPathTemplateModel $url_template, callable $callback) {
             $this->method = $method;
             $this->urlTemplate = $url_template;
             $this->callback = $callback;
@@ -94,16 +94,16 @@
             return (strtolower($this->method) == strtolower($method));
         }
 
-        public function matchesUrl(UrlModel $url): bool {
+        public function matchesUrl(UrlPathModel $url): bool {
             return $url->matchesTemplate($this->urlTemplate);
         }
 
         public function matchesRelativeUrl(string $url): bool {
-            $url = new UrlModel(Config::get('router.baseUrl').$url);
+            $url = new UrlPathModel(Config::get('router.baseUrl').$url);
             return $url->matchesTemplate($this->urlTemplate);
         }
 
-        public function getParams(UrlModel $url): array {
+        public function getParams(UrlPathModel $url): array {
             $params = [];
             
             foreach($this->urlTemplate->getPartsMap() as $index => $part) {
