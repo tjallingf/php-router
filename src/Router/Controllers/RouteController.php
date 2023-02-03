@@ -24,7 +24,7 @@
                 if(!$route->matchesMethod($method))
                     continue;
                 
-                if(!$route->matchesUrl($url))
+                if(!$route->matchesRelativeUrl($url))
                     continue;
 
                 $found_route = $route;
