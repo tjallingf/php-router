@@ -87,12 +87,14 @@
             return $this;
         }
 
-        public function redirect(string $url, bool $ignore_app_base_url = false): void {
+        public function redirect(string $url, bool $relative_to_base_url = true): void {
             $url = trim($url);
-            $is_relative = !str_contains(substr($url, 0, 8), '://');
+            $is_out = str_contains(substr($url, 0, 8), '://');
 
-            if($is_relative && !$ignore_app_base_url)
-                $url = Lib::joinPaths(Config::get('router.baseUrl'), $url);
+            if(!$is_out && $relative_to_base_url) {
+                $prefix = (str_starts_with($url, '/') ? '/' : '');
+                $url = $prefix.trim(Lib::joinPaths(Config::get('router.baseUrl'), $url), '/');
+            }
 
             $this->sendHeader('location', $url, true)->sendStatusCode(302)->end();
         }
