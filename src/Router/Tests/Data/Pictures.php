@@ -1,8 +1,6 @@
 <?php
     namespace Router\Tests\Data;
 
-    use Router\Router;
-
     class Pictures {
         public static function get() {
             return [

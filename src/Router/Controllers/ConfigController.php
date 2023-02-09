@@ -31,7 +31,7 @@
         static array $data = [];
 
         public static function store(array $data): void {
-            $formatted_base_url = '/'.trim(Lib::joinPaths(Lib::arrayGetByPath($data, 'router.baseUrl')), '/');
+            $formatted_base_url = trim(Lib::joinPaths(Lib::arrayGetByPath($data, 'router.baseUrl')), '/');
             Lib::arraySetByPath($data, 'router.baseUrl', strlen($formatted_base_url) > 1 ? $formatted_base_url : '');
             
             self::$data = array_replace_recursive(self::DEFAULT, $data);

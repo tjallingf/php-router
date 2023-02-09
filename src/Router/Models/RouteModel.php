@@ -15,29 +15,33 @@
 
     class RouteModel extends Model {
         protected string $method;
-        protected UrlPathTemplateModel $urlTemplate;
+        protected UrlPathTemplateModel $urlPathTemplate;
         protected $callback;
         protected array $middlewares = [];
+        protected array $options;
         
-        public function __construct(string $method, UrlPathTemplateModel $url_template, callable $callback) {
+        public function __construct(string $method, string $url_path_template, callable $callback, array $options) {
             $this->method = $method;
-            $this->urlTemplate = $url_template;
             $this->callback = $callback;
+
+            $url_path_template = new UrlPathTemplateModel(trim(Config::get('router.baseUrl').'/'.$url_path_template, '/'));
+            $this->urlPathTemplate = $url_path_template;
+            $this->options = $options;
         }
         
         public function __toString() {
-            return strtoupper($this->method).' '.$this->urlTemplate->__toString();
+            return strtoupper($this->method).' '.$this->urlPathTemplate->__toString();
         }
         
         public function handle(Request $req, Response $res): void {
             // Allow middleware to modify the request before passing it to the handler.
-            $this->callMiddlewares($req, $res, Middleware::MAP_REQUEST);
+            $this->callMiddlewares($req, $res, $this->options, Middleware::MAP_REQUEST);
             
             if(is_callable($this->callback))
                 call_user_func($this->callback, $req, $res);
 
             // Allow middleware to modify the response before passing it to the handler.
-            $this->callMiddlewares($req, $res, Middleware::MAP_RESPONSE);
+            $this->callMiddlewares($req, $res, $this->options, Middleware::MAP_RESPONSE);
         }
 
         public function use(MiddlewareModel $middleware) {
@@ -78,13 +82,13 @@
             return $this;
         }
 
-        protected function callMiddlewares(Request $req, Response $res, string $method) {
+        protected function callMiddlewares(Request $req, Response $res, array $options, string $method) {
             foreach ($this->getAllMiddlewares() as $middleware) {               
                 if($middleware instanceof MiddlewareObjectModel) {
-                    $middleware->handle([ $req, $res ], $method);
+                    $middleware->handle([ $req, $res, $options ], $method);
                 } else if ($middleware instanceof MiddlewareCallableModel) {
                     if(!$middleware->matchesMethod($method)) continue;
-                    $middleware->handle([ $req, $res ]);
+                    $middleware->handle([ $req, $res, $options ]);
                 }
             }
         }
@@ -94,19 +98,14 @@
             return (strtolower($this->method) == strtolower($method));
         }
 
-        public function matchesUrl(UrlPathModel $url): bool {
-            return $url->matchesTemplate($this->urlTemplate);
+        public function matchesUrlPath(UrlPathModel $url_path): bool {
+            return $url_path->matchesTemplate($this->urlPathTemplate);
         }
-
-        public function matchesRelativeUrl(string $url): bool {
-            $url = new UrlPathModel(Config::get('router.baseUrl').$url);
-            return $url->matchesTemplate($this->urlTemplate);
-        }
-
+        
         public function getParams(UrlPathModel $url): array {
             $params = [];
             
-            foreach($this->urlTemplate->getPartsMap() as $index => $part) {
+            foreach($this->urlPathTemplate->getPartsMap() as $index => $part) {
                 if($part['type'] != 'parameter') continue;
 
                 $value = $url->getValue($index);

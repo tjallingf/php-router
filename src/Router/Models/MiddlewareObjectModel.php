@@ -19,23 +19,7 @@
         }
 
         public function canHandle(string $method): bool {
-            // Get the implements of the object
-            $implements = array_change_key_case(class_implements($this->object, CASE_LOWER));
-            $must_implement = static::INTERFACES_NAMESPACE.'\\'.ucfirst($method);
-
-            if(!interface_exists($must_implement))
-                throw new \Exception("Interface '$must_implement' does not exist");
-
-
-            if(!method_exists($this->object, $method))
-                return false;
-
-            if(!array_key_exists(strtolower($must_implement), $implements)) {
-                trigger_error("Class '".$this->object::class."' has method '".$method."' but does not implement '".$must_implement."'", E_USER_WARNING);
-                return false;
-            }
-
-            return true;
+            return (method_exists($this->object, $method));
         }
 
         protected const INTERFACES_NAMESPACE = 'Router\\Middleware';

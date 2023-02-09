@@ -12,7 +12,7 @@
         }
 
         public function __toString(): string {
-            return '/'.implode('/', $this->valuesMap);
+            return implode('/', $this->valuesMap);
         }
 
         public function matchesTemplate(UrlPathTemplateModel $template): bool {

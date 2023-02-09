@@ -15,7 +15,7 @@
         }
 
         public static function getHeadCode(): string {
-            switch(Config::get('client.developmentModeEnabled')) {
+            switch(Config::get('client.developmentModeEnabled') && APP_MODE_DEV) {
                 case true:
                     if(count(Client::$includedScripts) || count(Client::$includedStylesheets))
                         return static::getOne('dev_vite_refresh_runtime');
@@ -28,7 +28,7 @@
         }
 
         public static function getBodyCode(): string {
-            switch(Config::get('client.developmentModeEnabled')) {
+            switch(Config::get('client.developmentModeEnabled') && APP_MODE_DEV) {
                 case true:
                     if(count(Client::$includedScripts) || count(Client::$includedStylesheets))
                         return static::getOne('dev_check_client_status');

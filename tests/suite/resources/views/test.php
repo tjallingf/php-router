@@ -7,7 +7,7 @@
     <title>About Me</title>
 </head>
 <body>
-    <FancyTitle>Hello, I'm <span id="name"><?= @$_PROPS['name']; ?></span>!</FancyTitle>
+    <FancyTitle>Hello, I'm <span id="name"><?= @$props->name; ?></span>!</FancyTitle>
     <FancyContent color="green">Lorem ipsum dolor sit, amet consectetur adipisicing elit. Sint, nostrum?</FancyContent>
 </body>
 </html>

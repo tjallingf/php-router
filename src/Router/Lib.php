@@ -75,4 +75,75 @@
             
             return substr(self::getRootDir(), strlen($document_root));
         }
+
+        /* Source: https://github.com/mcaskill/php-html-build-attributes */
+        public static function htmlBuildAttributes($attr, callable $callback = null) {
+            if (is_object($attr) && !($attr instanceof \Traversable))
+                $attr = get_object_vars($attr);
+
+            if (!is_array($attr) || !count($attr))
+                return '';
+
+            $html = [];
+            foreach ($attr as $key => $val) {
+                if (is_string($key)) {
+                    $key = trim($key);
+
+                    if (strlen($key) === 0) {
+                        continue;
+                    }
+                }
+
+                if(is_object($val) && is_callable($val))
+                    $val = $val();
+
+                if (is_null($val))
+                    continue;
+
+                if (is_object($val)) {
+                    if (is_callable([ $val, 'toArray' ])) {
+                        $val = $val->toArray();
+                    } elseif (is_callable([ $val, '__toString' ])) {
+                        $val = strval($val);
+                    }
+                }
+
+                if (is_bool($val)) {
+                    if ($val)
+                        $html[] = $key;
+
+                    continue;
+                } elseif (is_array($val)) {
+                    $val = implode(' ', array_reduce($val, function ($tokens, $token) {
+                        if (is_string($token)) {
+                            $token = trim($token);
+
+                            if (strlen($token) > 0) {
+                                $tokens[] = $token;
+                            }
+                        } elseif (is_numeric($token)) {
+                            $tokens[] = $token;
+                        }
+
+                        return $tokens;
+                    }, []));
+
+                    if (strlen($val) === 0) {
+                        continue;
+                    }
+                } elseif (!is_string($val) && !is_numeric($val)) {
+                    $val = json_encode($val, (JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE));
+                }
+
+                if (is_callable($callback)) {
+                    $val = $callback($val);
+                } else {
+                    $val = htmlspecialchars($val, ENT_QUOTES);
+                }
+
+                $html[] = sprintf('%1$s="%2$s"', $key, $val);
+            }
+
+            return implode(' ', $html);
+        }
     }

@@ -3,7 +3,6 @@
 
     use Router\Config;
     use Router\Router;
-    use Router\Response;
     use Router\Controllers\RouteController;
     use Router\Controllers\ConfigController;
 
@@ -21,12 +20,10 @@
             if(APP_MODE_DEV)
                 define('APP_CLIENT_SRC_DIR', realpath(Lib::joinPaths(
                     Lib::getRootDir(), 
-                    Config::get('client.rootDir'), 
                     Config::get('client.srcDir'))));
 
             define('APP_CLIENT_OUT_DIR', realpath(Lib::joinPaths(
-                Lib::getRootDir(), 
-                Config::get('client.rootDir'), 
+                Lib::getRootDir(),  
                 Config::get('client.outDir'))));
         }
 
@@ -40,7 +37,7 @@
                 $method = $_SERVER['REQUEST_METHOD'];
                 
                 // Get request uri
-                $url_path = '/'.trim(str_replace(Lib::getRelativeRootDir(), '', $_SERVER['REQUEST_URI']), '/');
+                $url_path = $_SERVER['REQUEST_URI'];
                 
                 // Get headers array
                 $headers = getallheaders();

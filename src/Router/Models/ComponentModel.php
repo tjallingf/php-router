@@ -6,19 +6,21 @@
     use Router\Controllers\ComponentController;
     use PHPHtmlParser\Dom\Node\HtmlNode;
     use PHPHtmlParser\Dom\Node\AbstractNode;
+    use Router\Models\ComponentPropsModel;
     use Exception;
 
     class ComponentModel extends Model {
-        protected array $data;
+        protected ComponentPropsModel $props;
         protected string $path;
 
         public function __construct(string $path, array $data = []) {
             $this->path = $path;
-            $this->data = $data; 
+            $this->props = new ComponentPropsModel($data); 
         }
 
         public function render(): string {
-            $_PROPS = $this->data;
+            // $props can be used inside the component
+            $props = $this->props;
 
             ob_start();
             include($this->path);

@@ -23,7 +23,7 @@
                 $string .= $name.'/';
             }
 
-            return '/'.rtrim($string, '/');
+            return trim($string, '/');
         }
 
         public function getPartsMap() {

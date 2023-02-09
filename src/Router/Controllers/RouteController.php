@@ -17,14 +17,14 @@
             return static::$data ?? [];
         }
 
-        public static function find(string $method, UrlPathModel $url = null) {
+        public static function find(string $method, UrlPathModel $url_path = null) {
             $found_route = null;
 
             foreach (static::index() as $route) {
                 if(!$route->matchesMethod($method))
                     continue;
                 
-                if(!$route->matchesRelativeUrl($url))
+                if(!$route->matchesUrlPath($url_path))
                     continue;
 
                 $found_route = $route;

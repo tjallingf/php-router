@@ -39,12 +39,28 @@
             // Find route
             $route = (RouteController::getOverride())::find($method, $url_path);
             
-            if(isset($route)) {
-                static::handleRoute($method, $url, $headers, $body, $route);
+            if(!isset($route)) {
+                static::handleException(new ResponseException('Cannot '.strtoupper($method)." route '$url'.", 404));
                 return;
             }
+            
+            // Handle route
+            static::$req = new (Request::getOverride())(
+                $method, $url, $headers, $body, $route);
 
-            static::handleException(new ResponseException('Route Not Found', 404));  
+            register_shutdown_function([ static::class, 'exitHandler' ]);
+            // set_error_handler([ static::class, 'errorHandler' ], E_ALL & ~E_WARNING);
+
+            try {
+                $route->handle(static::$req, static::$res);
+            } catch(\Exception $e) {
+                // If app is in development mode, throw the exception if it is not a ResponseException
+                if(APP_MODE_DEV && get_class($e) !== ResponseException::class) {
+                    throw $e;
+                }
+
+                static::handleException($e, $route);
+            }  
         }
 
         public static function handleException(\Exception $e): void {
@@ -73,26 +89,6 @@
             string $body,
             RouteModel $route
         ): void {
-            static::$req = new (Request::getOverride())(
-                $method, 
-                $url, 
-                $headers, 
-                $body, 
-                $route
-            );
-
-            register_shutdown_function([ static::class, 'exitHandler' ]);
-            // set_error_handler([ static::class, 'errorHandler' ], E_ALL & ~E_WARNING);
-
-            try {
-                $route->handle(static::$req, static::$res);
-            } catch(\Exception $e) {
-                // If app is in development mode, throw the exception if it is not a ResponseException
-                if(APP_MODE_DEV && get_class($e) !== ResponseException::class) {
-                    throw $e;
-                }
-
-                static::handleException($e, $route);
-            }
+            
         }
     }

@@ -5,9 +5,11 @@
     use Router\Models\UrlPathModel;
     use Router\Models\RequestCookieModel;
     use Router\Models\RouteModel;
+    use stdClass;
 
     class Request extends Message {       
         public string $method;
+        public stdClass $data;
         public UrlPathModel $url;
         public UrlPathModel $relativeUrl;
         public array $params;
@@ -25,7 +27,7 @@
 
             $this->method = $method;
             $this->url = new UrlPathModel($url);
-            $this->relativeUrl = new UrlPathModel('/'.trim(substr(trim($url, '/'), strlen(Config::get('router.baseUrl'))), '/'));
+            $this->relativeUrl = new UrlPathModel(trim(substr(trim($url, '/'), strlen(Config::get('router.baseUrl'))), '/'));
             $this->route = $route;
 
             $this->headers = $this->parseHeaders($headers);

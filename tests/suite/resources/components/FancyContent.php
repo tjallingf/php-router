@@ -1,1 +1,1 @@
-<p style="color: <?= $_PROPS['color']; ?>"></p>
+<p style="color: <?= $props->color; ?>"></p>

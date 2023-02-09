@@ -5,26 +5,17 @@
     use Router\Route;
     use Router\Models\UrlPathTemplateModel;
 
-    class ApiHandler {
+    class RouteApiHandler {
         protected string|object $handler;
         protected array $options;
-        protected string $basePathTemplate;
+        protected string $pathTemplateBase;
         protected string $idParam;
 
-        public function __construct(string|object $handler, array $options = []) {
+        public function __construct(string $path_template_base, string|object $handler, array $options = []) {
+            $this->pathTemplateBase = $path_template_base;
             $this->handler = $handler;
             $this->options = array_replace(static::DEFAULT_OPTIONS, $options);
-            $this->idParam = $this->options['id_param'];
-        }
-
-        public static function create(string|object $handler, array $options = []) {
-            return new static($handler, $options);
-        }
-
-        public function setBasePathTemplate(string $base_path_template) {
-            $this->basePathTemplate = $base_path_template;
-
-            $this->registerRoutes();
+            $this->idParam = $this->options['id_param_name'];
         }
 
         public function callHandler(string $method, array $args = []) {
@@ -32,30 +23,29 @@
             return call_user_func_array($callable, $args);
         }
 
-        protected function registerRoutes() {
-            $index_path_template = $this->basePathTemplate;
+        public function registerRoutes() {
+            $index_path_template = $this->pathTemplateBase;
             $item_path_template = $this->getNewPathTemplate('{'.$this->idParam.'}');
             
-            if(is_string($this->options['methods']['index']))
-                Route::get($index_path_template, [ $this, 'handleIndex' ]);
+            if(is_string(@$this->options['methods']['index']))
+                Route::get($index_path_template, [ $this, 'handleIndex' ], $this->options);
 
-            if(is_string($this->options['methods']['find']))
-                Route::get($item_path_template, [ $this, 'handleFind' ]);
+            if(is_string(@$this->options['methods']['find']))
+                Route::get($item_path_template, [ $this, 'handleFind' ], $this->options);
 
-            if(is_string($this->options['methods']['create']))
-                Route::post($item_path_template, [ $this, 'handleCreate' ]);
+            if(is_string(@$this->options['methods']['create']))
+                Route::post($item_path_template, [ $this, 'handleCreate' ], $this->options);
 
-            if(is_string($this->options['methods']['update']))
-                Route::put($item_path_template, [ $this, 'handleUpdate' ]);
+            if(is_string(@$this->options['methods']['update']))
+                Route::put($item_path_template, [ $this, 'handleUpdate' ], $this->options);
 
-            if(is_string($this->options['methods']['edit']))
-                Route::patch($item_path_template, [ $this, 'handleEdit' ]);
+            if(is_string(@$this->options['methods']['edit']))
+                Route::patch($item_path_template, [ $this, 'handleEdit' ], $this->options);
         }
         
         protected function getNewPathTemplate(string $append): string {
-            return (new UrlPathTemplateModel($this->basePathTemplate.'/'.$append))->__toString();
+            return (new UrlPathTemplateModel($this->pathTemplateBase.'/'.$append))->__toString();
         }
-
                 
         public function handleIndex($req, $res): void {
             $res->sendJson($this->callHandler('index'));
@@ -90,6 +80,6 @@
                 'edit'   => 'edit',
                 'create' => 'create'
             ],
-            'id_param' => 'model_id'
+            'id_param_name' => 'model_id'
         ];
     }

@@ -8,8 +8,13 @@
         public static $includedStylesheets = [];
         public static $includedScripts = [];
 
-        public static function includeScript($filename, array $attributes = []): string {
-            if(!isset($filename)) return '';
+        public static function include(): string {
+            return 
+                static::includeScript(static::findMainScript()).
+                static::includeStylesheet(static::findMainStylesheet());
+        }
+
+        public static function includeScript(string $filename, array $attributes = []): string {
             $url = static::resolveUrl($filename);
             if(!isset($url)) return '';
 
@@ -23,11 +28,10 @@
             );
         }
 
-        public static function includeStylesheet($filename, array $attributes = []): string {
+        public static function includeStylesheet(string $filename, array $attributes = []): string {
             // In development mode, styles are handled by the JavaScript file.
-            if(Config::get('client.developmentModeEnabled')) return '';
+            if(Config::get('client.developmentModeEnabled') && APP_MODE_DEV) return '';
 
-            if(!isset($filename)) return '';
             $url = static::resolveUrl($filename);
             if(!isset($url)) return '';
 
@@ -44,7 +48,7 @@
         }
 
         public static function findMainStylesheet() {
-            if(Config::get('client.developmentModeEnabled')) {
+            if(Config::get('client.developmentModeEnabled') && APP_MODE_DEV) {
                 $filepath = @glob(APP_CLIENT_SRC_DIR.'/*.{css,scss,sass}', GLOB_BRACE)[0];
                 return basename($filepath);
             }
@@ -53,11 +57,11 @@
             return pathinfo($input_file, PATHINFO_FILENAME).'.css';
         }
 
-        public static function resolveUrl(string $filename) {
+        public static function resolveUrl(string $filename): string|null {
             $filepath = static::resolveFilepath($filename); 
-            if(!isset($filepath)) return $filepath;
+            if(!isset($filepath)) return null;
 
-            if(Config::get('client.developmentModeEnabled')) {
+            if(Config::get('client.developmentModeEnabled') && APP_MODE_DEV) {
                 $domain = 'http://localhost:'.Config::get('client.port');
                 $url = ltrim(substr($filepath, strlen(APP_CLIENT_SRC_DIR)), '/');
             
@@ -72,7 +76,7 @@
         }
 
         public static function resolveFilepath(string $filename) {
-            if(Config::get('client.developmentModeEnabled'))
+            if(Config::get('client.developmentModeEnabled') && APP_MODE_DEV)
                 return Lib::joinPaths(APP_CLIENT_SRC_DIR, $filename);
 
             // Generate pattern for file names to match,
@@ -98,15 +102,7 @@
         }
         
         protected static function createNodeString(string $node, array $attributes = [], string $content = ''): string {
-            $node_string = "<$node ";
-
-            foreach ($attributes as $key => $value) {
-                $node_string .= "$key=\"$value\" ";
-            }
-            
-            $node_string = rtrim($node_string, ' ').">$content</$node/>";
-
-            return $node_string;
+            return "<$node ".Lib::htmlBuildAttributes($attributes).">$content</$node>";
         }
     }
 ?>

@@ -1,1 +1,1 @@
-<h1 style="color: red;"><?= $_PROPS['children']; ?></h1>
+<h1 style="color: red;"><?= $props->children; ?></h1>
