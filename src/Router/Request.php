@@ -49,7 +49,7 @@
         /**
          * Gets a specific query parameter by name.
          * @param string $name - The name of the query parameter to get.
-         * @return any - The value of the query parameter, or null if it is not set.
+         * @return string|null - The value of the query parameter, or null if it is not set.
          */
         public function getQuery(string $name): string|null {
             return @$this->query[trim($name)];
