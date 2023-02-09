@@ -43,7 +43,8 @@
          * @return string|null - The value of the query parameter, or null if it is not set.
          */
         public function getParam(string $name) {
-            return @$this->params[trim($name)];
+            $value = @$this->params[trim($name)];
+            return is_string($value) ? urldecode($value) : null;
         }
 
         /**
@@ -52,7 +53,8 @@
          * @return string|null - The value of the query parameter, or null if it is not set.
          */
         public function getQuery(string $name): string|null {
-            return @$this->query[trim($name)];
+            $value = @$this->query[trim($name)];
+            return is_string($value) ? urldecode($value) : null;
         }
 
         protected function parseHeaders(array $headers): array {
