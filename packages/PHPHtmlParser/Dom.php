@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace PHPHtmlParser;
 
-use GuzzleHttp\Psr7\Request;
-use GuzzleHttp\Client;
 use PHPHtmlParser\Contracts\Dom\CleanerInterface;
 use PHPHtmlParser\Contracts\Dom\ParserInterface;
 use PHPHtmlParser\Contracts\DomInterface;
@@ -19,10 +17,6 @@ use PHPHtmlParser\Exceptions\LogicalException;
 use PHPHtmlParser\Exceptions\NotLoadedException;
 use PHPHtmlParser\Exceptions\StrictException;
 use PHPHtmlParser\Exceptions\UnknownChildTypeException;
-use Psr\Http\Client\ClientExceptionInterface;
-use Psr\Http\Client\ClientInterface;
-use Psr\Http\Message\RequestInterface;
-
 /**
  * Class Dom.
  */
@@ -102,32 +96,6 @@ class Dom implements DomInterface
         if ($content === false) {
             throw new LogicalException('file_get_contents failed and returned false when trying to read "' . $file . '".');
         }
-
-        return $this->loadStr($content, $options);
-    }
-
-    /**
-     * Use a curl interface implementation to attempt to load
-     * the content from a url.
-     *
-     * @throws ChildNotFoundException
-     * @throws CircularException
-     * @throws Exceptions\ContentLengthException
-     * @throws LogicalException
-     * @throws StrictException
-     * @throws ClientExceptionInterface
-     */
-    public function loadFromUrl(string $url, ?Options $options = null, ?ClientInterface $client = null, ?RequestInterface $request = null): Dom
-    {
-        if ($client === null) {
-            $client = new Client();
-        }
-        if ($request === null) {
-            $request = new Request('GET', $url);
-        }
-
-        $response = $client->sendRequest($request);
-        $content = $response->getBody()->getContents();
 
         return $this->loadStr($content, $options);
     }

@@ -4,14 +4,10 @@ declare(strict_types=1);
 
 namespace PHPHtmlParser;
 
-use GuzzleHttp\Psr7\Request;
-use GuzzleHttp\Client;
 use PHPHtmlParser\Exceptions\ChildNotFoundException;
 use PHPHtmlParser\Exceptions\CircularException;
 use PHPHtmlParser\Exceptions\NotLoadedException;
 use PHPHtmlParser\Exceptions\StrictException;
-use Psr\Http\Client\ClientInterface;
-use Psr\Http\Message\RequestInterface;
 
 /**
  * Class StaticDom.
@@ -70,30 +66,6 @@ final class StaticDom
         self::$dom = $dom;
 
         return $dom->loadFromFile($file, $options);
-    }
-
-    /**
-     * Creates a new dom object and calls loadFromUrl() on the
-     * new object.
-     *
-     * @throws ChildNotFoundException
-     * @throws CircularException
-     * @throws StrictException
-     * @throws \Psr\Http\Client\ClientExceptionInterface
-     */
-    public static function loadFromUrl(string $url, ?Options $options = null, ClientInterface $client = null, RequestInterface $request = null): Dom
-    {
-        $dom = new Dom();
-        self::$dom = $dom;
-
-        if (\is_null($client)) {
-            $client = new Client();
-        }
-        if (\is_null($request)) {
-            $request = new Request('GET', $url);
-        }
-
-        return $dom->loadFromUrl($url, $options, $client, $request);
     }
 
     public static function loadStr(string $str, ?Options $options = null): Dom
