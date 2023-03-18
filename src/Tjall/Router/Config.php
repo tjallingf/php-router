@@ -22,7 +22,7 @@
         }
 
         protected static function handleBasePath() {
-            $base_path = trim(static::get('routes.basePath'), '/');
+            $base_path = '/'.trim(static::get('routes.basePath'), '/');
             if($base_path === '/') $base_path = '';
 
             static::set('routes.basePath', $base_path);

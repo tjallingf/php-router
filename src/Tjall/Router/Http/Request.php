@@ -1,14 +1,20 @@
 <?php
-    namespace Tjall\Router;
+    namespace Tjall\Router\Http;
 
-    use Tjall\Router\UploadedFile;
+    use Tjall\Router\Http\UploadedFile;
+    use stdClass;
 
     class Request {
-        public array|string|null $body;
+        /* Available for middleware */
+        public $user;
+        public stdClass $data;
+
+        public array $body;
         public array $files;
         public string $method;
         public array $params;
         public array $query;
+        public array $cookies;
 
         public function __construct(array $params) {
             $this->method = $this->getRequestMethod();
@@ -16,6 +22,7 @@
             $this->files = $this->getFiles();
             $this->body = $this->getBody();
             $this->query = $this->getQuery();
+            $this->cookies = $this->getCookies();
         }
 
         public function input(string $name, $fallback = null) {
@@ -32,6 +39,10 @@
             return $_GET;
         }
 
+        protected function getCookies(): array {
+            return $_COOKIE;
+        }
+
         protected function getRequestMethod(): string {
             return trim(strtoupper($_SERVER['REQUEST_METHOD']));
         }
@@ -46,12 +57,10 @@
             }, $_FILES);
         }
 
-        protected function getBody(): array|string|null {
-            if(count($_POST)) return $_POST;
-
-            $raw = file_get_contents('php://input');
-            if(empty($raw)) return null;
-
-            return $raw;
+        protected function getBody(): array {
+            if(count($_POST)) 
+                return $_POST;
+                
+            return (array) @json_decode(file_get_contents('php://input'), true);
         }
     }

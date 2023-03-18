@@ -1,8 +1,9 @@
 <?php
-    namespace Tjall\Router;
+    namespace Tjall\Router\Http;
 
     use Tjall\Router\Config;
-    use Tjall\Router\Request;
+    use Tjall\Router\Http\Request;
+    use Tjall\Router\View;
     use Tjall\Router\Http\Status;
 
     class Response {
@@ -22,9 +23,9 @@
                 return $this;
             }
 
-            // Overwrite the body if the data is a view
+            // If $data is a view, render it
             if($data instanceof View) {
-                $this->body = $data->render();
+                $this->body .= $data->render();
                 return $this;
             }
 
@@ -33,18 +34,20 @@
             return $this;
         }
 
-        function status(int $status) {
+        function status(int $status): self {
             $this->status = $status;
+
+            return $this;
         }
 
-        function redirect(string $url, ?int $status = null, ?bool $do_prepend_base_path = true) {
+        function redirect(string $url, ?int $status = null): self {
             // Check if the url has a protocol suffix
             $protocol_suffix_pos = strpos($url, '://');
             $is_outward = ($protocol_suffix_pos !== false && $protocol_suffix_pos < 5);
             $is_absolute = (strpos($url, '/') !== false);
 
             // Prepend the basepath if the url is absolute and not outward
-            if($do_prepend_base_path && $is_absolute && !$is_outward)
+            if($is_absolute && !$is_outward)
                 $url = Config::get('routes.basePath').'/'.ltrim($url, '/');
 
             $this->status($status || Status::TEMPORARY_REDIRECT);

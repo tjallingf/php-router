@@ -1,7 +1,5 @@
 <?php 
-    namespace Tjall\Router;
-
-    use Exception;
+    namespace Tjall\Router\Http;
 
     class UploadedFile {
         public string $name;
