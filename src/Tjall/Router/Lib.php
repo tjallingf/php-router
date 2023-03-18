@@ -2,6 +2,35 @@
     namespace Tjall\Router;
 
     class Lib {
+        public static function requireAll($dir) {
+            foreach (self::recursiveGlob($dir, '*.php') as $file) require_once $file;
+        }
+
+        public static function recursiveGlob($base, $pattern, $flags = 0) {
+            $flags = $flags & ~GLOB_NOCHECK;
+            
+            if (substr($base, -1) !== DIRECTORY_SEPARATOR) {
+                $base .= DIRECTORY_SEPARATOR;
+            }
+
+            $files = glob($base.$pattern, $flags);
+            if (!is_array($files)) {
+                $files = [];
+            }
+
+            $dirs = glob($base.'*', GLOB_ONLYDIR|GLOB_NOSORT|GLOB_MARK);
+            if (!is_array($dirs)) {
+                return $files;
+            }
+            
+            foreach ($dirs as $dir) {
+                $dirFiles = self::recursiveGlob($dir, $pattern, $flags);
+                $files = array_merge($files, $dirFiles);
+            }
+
+            return $files;
+        }
+
         public static function joinPaths(...$paths) {
             return preg_replace('~[/\\\\]+~', '/', implode('/', $paths));
         }

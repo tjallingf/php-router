@@ -3,6 +3,7 @@
 
     use Tjall\Router\Config;
     use Tjall\Router\Request;
+    use Tjall\Router\Http\Status;
 
     class Response {
         protected array $headers = [];
@@ -21,7 +22,7 @@
                 return $this;
             }
 
-            // If data is view, overwrite body
+            // Overwrite the body if the data is a view
             if($data instanceof View) {
                 $this->body = $data->render();
                 return $this;
@@ -37,14 +38,16 @@
         }
 
         function redirect(string $url, ?int $status = null, ?bool $do_prepend_base_path = true) {
-            // Check if the url starts with a protocol (e.g., //, https://, http://)
-            $is_outward = (strpos($url, '//') <= 6);
+            // Check if the url has a protocol suffix
+            $protocol_suffix_pos = strpos($url, '://');
+            $is_outward = ($protocol_suffix_pos !== false && $protocol_suffix_pos < 5);
+            $is_relative = (strpos($url, '/') === false);
 
-            // Prepend the basepath if the url is not outward
-            if($do_prepend_base_path && !$is_outward)
-                $url = '/'.rtrim(Config::get('basePath'), '/').ltrim($url, '/');
+            // Prepend the basepath if the url is absolute and outward
+            if($do_prepend_base_path && !$is_outward && !$is_relative)
+                $url = '/'.trim(Config::get('routes.basePath'), '/').'/'.ltrim($url, '/');
 
-            $this->status($status || static::STATUS_TEMPORARY_REDIRECT);
+            $this->status($status || Status::TEMPORARY_REDIRECT);
             $this->header('Location', $url);
 
             return $this;
@@ -98,49 +101,4 @@
 
             echo($this->body);
         }
-
-        const STATUS_CONTINUE = 100;
-        const STATUS_SWITCHING_PROTOCOLS = 101;
-        const STATUS_OK = 200;
-        const STATUS_CREATED = 201;
-        const STATUS_ACCEPTED = 202;
-        const STATUS_NON_AUTHORITATIVE_INFORMATION = 203;
-        const STATUS_NO_CONTENT = 204;
-        const STATUS_RESET_CONTENT = 205;
-        const STATUS_PARTIAL_CONTENT = 206;
-        const STATUS_MULTIPLE_CHOICES = 300;
-        const STATUS_MOVED_PERMANENTLY = 301;
-        const STATUS_FOUND = 302;
-        const STATUS_SEE_OTHER = 303;
-        const STATUS_NOT_MODIFIED = 304;
-        const STATUS_USE_PROXY = 305;
-        const STATUS_TEMPORARY_REDIRECT = 307;
-        const STATUS_PERMANENT_REDIRECT = 308;
-        const STATUS_BAD_REQUEST = 400;
-        const STATUS_UNAUTHORIZED = 401;
-        const STATUS_PAYMENT_REQUIRED = 402;
-        const STATUS_FORBIDDEN = 403;
-        const STATUS_NOT_FOUND = 404;
-        const STATUS_METHOD_NOT_ALLOWED = 405;
-        const STATUS_NOT_ACCEPTABLE = 406;
-        const STATUS_PROXY_AUTHENTICATION_REQUIRED = 407;
-        const STATUS_REQUEST_TIMEOUT = 408;
-        const STATUS_CONFLICT = 409;
-        const STATUS_GONE = 410;
-        const STATUS_LENGTH_REQUIRED = 411;
-        const STATUS_PRECONDITION_FAILED = 412;
-        const STATUS_CONTENT_TOO_LARGE = 413;
-        const STATUS_URI_TOO_LONG = 414;
-        const STATUS_UNSUPPORTED_MEDIA_TYPE = 415;
-        const STATUS_RANGE_NOT_SATISFIABLE = 416;
-        const STATUS_EXPECTATION_FAILED = 417;
-        const STATUS_MISDIRECTED_REQUEST = 421;
-        const STATUS_UNPROCESSABLE_CONTENT = 422;
-        const STATUS_UPGRADE_REQUIRED = 426;
-        const STATUS_INTERNAL_SERVER_ERROR = 500;
-        const STATUS_NOT_IMPLEMENTED = 501;
-        const STATUS_BAD_GATEWAY = 502;
-        const STATUS_SERVICE_UNAVAILABLE = 503;
-        const STATUS_GATEWAY_TIMEOUT = 504;
-        const STATUS_HTTP_VERSION_NOT_SUPPORTED = 505;
     }

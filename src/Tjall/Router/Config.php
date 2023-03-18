@@ -22,9 +22,8 @@
         }
 
         protected static function handleBasePath() {
-            $base_path = '/'.trim(static::get('router.base_path'), '/');
-            Router::$router->setBasePath($base_path);
-            static::set('router.base_path', $base_path);
+            $base_path = '/'.trim(static::get('routes.basePath'), '/');
+            static::set('routes.basePath', $base_path);
         }
 
         protected static function handleRootDir() {
@@ -34,19 +33,20 @@
         }
 
         protected const DEFAULT = [
-            'mode'      => 'prod',
+            'mode'         => 'prod',
             'views' => [
-                'dir' => 'views'
+                'dir'      => 'views'
             ],
-            'router' => [
-                'basePath' => '/'
+            'routes' => [
+                'basePath' => '/',
+                'dir'      => 'routes'
             ],
             'vite' => [
-                'mode'    => 'dev',
-                'srcDir'  => 'client/src',
-                'outDir'  => 'public/static/dist',
-                'input'   => 'main.jsx',
-                'devPort' => 5173
+                'mode'     => 'dev',
+                'srcDir'   => 'client/src',
+                'outDir'   => 'public/static/dist',
+                'input'    => 'main.jsx',
+                'devPort'  => 5173
             ]
         ];
     }
