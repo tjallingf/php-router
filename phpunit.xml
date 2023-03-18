@@ -1,5 +1,0 @@
-<phpunit>
-    <extensions>
-        <extension class="Router\Tests\Extensions\Boot"/>
-    </extensions>
-</phpunit>
