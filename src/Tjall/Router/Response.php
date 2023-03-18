@@ -41,11 +41,11 @@
             // Check if the url has a protocol suffix
             $protocol_suffix_pos = strpos($url, '://');
             $is_outward = ($protocol_suffix_pos !== false && $protocol_suffix_pos < 5);
-            $is_relative = (strpos($url, '/') === false);
+            $is_absolute = (strpos($url, '/') !== false);
 
-            // Prepend the basepath if the url is absolute and outward
-            if($do_prepend_base_path && !$is_outward && !$is_relative)
-                $url = '/'.trim(Config::get('routes.basePath'), '/').'/'.ltrim($url, '/');
+            // Prepend the basepath if the url is absolute and not outward
+            if($do_prepend_base_path && $is_absolute && !$is_outward)
+                $url = Config::get('routes.basePath').'/'.ltrim($url, '/');
 
             $this->status($status || Status::TEMPORARY_REDIRECT);
             $this->header('Location', $url);
