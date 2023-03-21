@@ -7,8 +7,5 @@
         "psr-4": {
             "Tjall\\Router\\": "src/Tjall/Router"
         }
-    },
-    "require": {
-        "bramus/router": "^1.6"
     }
 }
