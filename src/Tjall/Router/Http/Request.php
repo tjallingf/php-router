@@ -17,12 +17,12 @@
         public array $cookies;
 
         public function __construct(array $params) {
-            $this->method = $this->getRequestMethod();
-            $this->params = $this->getParams($params);
-            $this->files = $this->getFiles();
-            $this->body = $this->getBody();
-            $this->query = $this->getQuery();
-            $this->cookies = $this->getCookies();
+            $this->method = $this->readRequestMethod();
+            $this->params = $this->readParams($params);
+            $this->files = $this->readFiles();
+            $this->body = $this->readBody();
+            $this->query = $this->readQuery();
+            $this->cookies = $this->readCookies();
         }
 
         public function input(string $name, $fallback = null) {
@@ -35,29 +35,29 @@
             return $this->query[$name];
         }
 
-        protected function getQuery(): array {
+        protected function readQuery(): array {
             return $_GET;
         }
 
-        protected function getCookies(): array {
+        protected function readCookies(): array {
             return $_COOKIE;
         }
 
-        protected function getRequestMethod(): string {
+        protected function readRequestMethod(): string {
             return trim(strtoupper($_SERVER['REQUEST_METHOD']));
         }
 
-        protected function getParams(array $params): array {
+        protected function readParams(array $params): array {
             return $params;
         }
 
-        protected function getFiles() {
+        protected function readFiles() {
             return array_map(function($file) {
                 return new UploadedFile($file);
             }, $_FILES);
         }
 
-        protected function getBody(): array {
+        protected function readBody(): array {
             if(count($_POST)) 
                 return $_POST;
                 

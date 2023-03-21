@@ -35,6 +35,19 @@
             return preg_replace('~[/\\\\]+~', '/', implode('/', $paths));
         }
 
+        public static function formatUrlPath(string $url_path, ?bool $leading_slash = true, ?bool $trailing_slash = false): string {
+            $url_path = trim(Lib::joinPaths($url_path), '/');
+            return ($leading_slash ? '/' : '').$url_path.($trailing_slash ? '/' : '');
+        }
+        
+        public static function getProjectDir(): string {
+            $reflection = new \ReflectionClass(\Composer\Autoload\ClassLoader::class);
+            $vendor_dir = dirname($reflection->getFileName(), 2);
+            $project_root = dirname($vendor_dir, 1);
+
+            return Lib::relativePath($_SERVER['DOCUMENT_ROOT'], $project_root);
+        }
+
         public static function relativePath(string $relative_to, string $path) {
             return substr(str_replace('\\', '/', realpath($path)), strlen(str_replace('\\', '/', realpath($relative_to))));
         }

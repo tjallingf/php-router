@@ -14,5 +14,4 @@
                 'error' => rtrim($message, '.').'.'
             ]);
         }
-
     }

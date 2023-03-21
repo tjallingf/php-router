@@ -10,14 +10,14 @@
 
     class Route {
         public $callback;
-        public ?string $url;
-        public ?string $method;
+        public ?string $pattern;
         public ?RoutesGroup $group;
+        public ?array $methods;
 
-        function __construct(?string $method, ?string $url, callable $callback, ?RoutesGroup $group) {
-            $this->method = $method;
+        function __construct(array $methods, ?string $pattern, callable $callback, ?RoutesGroup $group) {
+            $this->methods = $methods;
             $this->callback = $callback;
-            $this->url = '/'.trim(Lib::joinPaths(Config::get('routes.basePath'), $url), '/');
+            $this->pattern = Lib::formatUrlPath(Config::get('routes.basePath').'/'.$pattern);
             $this->group = $group;
         }
         
@@ -27,13 +27,15 @@
                 Router::$response = new Response(Router::$request);
             }
 
-            $this->group->call($this->group->middlewares['before']);
+            if(isset($this->group))
+                $this->group->call($this->group->middlewares['before']);
 
             call_user_func_array($this->callback, [
                 Router::$request,
                 Router::$response
             ]);
 
-            $this->group->call($this->group->middlewares['after']);
+            if(isset($this->group))
+                $this->group->call($this->group->middlewares['after']);
         }
     }

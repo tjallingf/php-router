@@ -5,9 +5,12 @@
     use Tjall\Router\Http\Request;
     use Tjall\Router\View;
     use Tjall\Router\Http\Status;
+    use Tjall\Router\Http\Cookie;
+    use Exception;
 
     class Response {
         protected array $headers = [];
+        protected array $cookies = [];
         protected string $body = '';
         protected int $status = 200;
         protected Request $request;
@@ -34,6 +37,11 @@
             return $this;
         }
 
+        function clearBody(): self {
+            $this->body = '';
+            return $this;
+        }
+
         function status(int $status): self {
             $this->status = $status;
 
@@ -55,20 +63,17 @@
 
             return $this;
         }
-        
+
+        function cookie(Cookie $cookie): self {
+            array_push($this->cookies, $cookie);
+            return $this;
+        }
+
         function header(string $field, array|string $value): self {
             $field = strtolower($field);
             
             $this->headers[$field] = $this->headers[$field] ?? [];
             array_push($this->headers[$field], $value);
-
-            return $this;
-        }
-
-        function headers(object $headers): self {
-            foreach ($headers as $field => $value) {
-                $this->header($field, $value);
-            }
 
             return $this;
         }
@@ -81,8 +86,12 @@
         }
 
         function end(): void {
+            if(headers_sent())
+                throw new Exception('Failed to end response because body was already sent.');
+
             $this->endStatus();
             $this->endHeaders();
+            $this->endCookies();
             $this->endBody();
         }
 
@@ -95,6 +104,12 @@
                 foreach ($values as $value) {
                     header("$field: $value", true);
                 }
+            }
+        }
+
+        protected function endCookies(): void {
+            foreach ($this->cookies as $cookie) {
+                setcookie(...$cookie->toArray());
             }
         }
 

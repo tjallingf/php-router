@@ -16,7 +16,8 @@
         protected static function includeDev() {
             $input = basename(Config::get('vite.input'));
             $port = Config::get('vite.devPort');
-            $host = 'http://127.0.0.1:'.$port;
+            $addr = $_SERVER['SERVER_ADDR'] ?? $_SERVER['LOCAL_ADDR'];
+            $host = "$addr:$port";
 
             $html_snippet = <<<HTML
                 <script type="module">
@@ -54,19 +55,23 @@
                 <script nomodule crossorigin id="vite-legacy-entry" data-src="{$entries['js'][$input_name.'-legacy']}">System.import(document.getElementById('vite-legacy-entry').getAttribute('data-src'))</script>
             HTML;
 
-            foreach ($entries['css'] as $uri) {
+            foreach ($entries['css'] as $url) {
                 $html_snippet .= <<<HTML
-                    <link rel="stylesheet" href="{$uri}">
+                    <link rel="stylesheet" href="{$url}">
                 HTML;
             }
             
             return $html_snippet;
         }
 
-        protected static function getDistUri(string $file, string $out_dir) {
+        protected static function getFileUrl(string $file, string $out_dir): string {
             $relative_to = Lib::joinPaths(Config::get('rootDir'), 'public');
             $path = Lib::joinPaths($out_dir, $file);
-            return Lib::relativePath($relative_to, $path);
+            $relative_out_dir = Lib::relativePath($relative_to, $path);
+            // $url = Lib::formatUrlPath(Lib::getProjectDir().'/'.$relative_out_dir); 
+            $url = Lib::formatUrlPath(Config::get('routes.basePath').'/'.$relative_out_dir);
+
+            return $url;
         }
         
         protected static function createNode(string $tag, array $attributes = [], string $content = '') {
@@ -88,20 +93,20 @@
                 // Skip if file is not an entry
                 if(@$data['isEntry'] !== true) continue;
 
-                // Get the uri to the entry
-                $uri = static::getDistUri($data['file'], $out_dir);
+                // Get the url to the entry
+                $url = static::getFileUrl($data['file'], $out_dir);
 
                 // Get the rel of the entry ('polyfills-legacy', 'main', 'main-legacy')
                 $rel = strtok(basename($data['file']), '.');
 
                 // Store the entry
-                $entries['js'][$rel] = $uri;
+                $entries['js'][$rel] = $url;
 
                 // Store CSS entries
                 if(@is_array($data['css'])) {
                     foreach ($data['css'] as $file) {
-                        $uri = static::getDistUri($file, $out_dir);
-                        array_push($entries['css'], $uri);
+                        $url = static::getFileUrl($file, $out_dir);
+                        array_push($entries['css'], $url);
                     }
                 }
             }

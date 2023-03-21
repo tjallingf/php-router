@@ -9,13 +9,12 @@
     use Exception;
     use Tjall\Router\RoutesGroup;
     use Tjall\Router\Handlers\ErrorHandler;
-    use Tjall\Router\Handlers\MiddlewareHandler;
+    use Tjall\Router\Handlers\RouteHandler;
 
     class Router {
         protected static array $routes = [];
         protected static array $errorRoutes = [];
         public static ?RoutesGroup $currentRoutesGroup = null;
-        public static $router;
         public static Request $request;
         public static Response $response;
         public static object $addMiddleware;
@@ -33,9 +32,8 @@
                 set_error_handler([ ErrorHandler::class, 'handle' ]);
             }
 
-            // Start router
             try {
-                @static::$router->run();
+                RouteHandler::handle(static::$routes);
             } catch(\Exception $e) {
                 ErrorHandler::handle($e);
             }
@@ -47,13 +45,8 @@
             static::$response->end();
         }
 
-        protected static function callErrorRoutes(int $status) {
-            if(!isset(static::$errorRoutes[$status]))
-                throw new Exception("Failed with status code $status.");
-
-            foreach (static::$errorRoutes[$status] as $route) {
-                $route->call();
-            }
+        static function url(string $url) {
+            return Lib::formatUrlPath(Config::get('routes.basePath').'/'.$url);
         }
 
         static function group(callable $add_routes): RoutesGroup {
@@ -61,18 +54,19 @@
         }
 
         static function error(int $status, callable $callback): void {
-            $route = new Route(null, null, $callback, null);
+            $route = new Route([], null, $callback, null);
             static::$errorRoutes[$status] = static::$errorRoutes[$status] ?? [];
 
             array_push(static::$errorRoutes[$status], $route);
         }
 
-        static function match(string $method, string $url, callable $callback): Route {
-            $route = new Route($method, $url, $callback, static::$currentRoutesGroup);
+        static function match(string $methods, string $url, callable $callback): Route {
+            $methods = explode('|', $methods);
+            $route = new Route($methods, $url, $callback, static::$currentRoutesGroup);
 
-            static::$router->match($route->method, $route->url, function(...$params) use($route) {
-                return $route->call($params);
-            });
+            foreach ($methods as $method) {
+                static::$routes[$method][] = $route;
+            }
             
             return $route;
         }
@@ -104,10 +98,16 @@
         static function delete(string $url, callable $callback): void {
             static::match('DELETE', $url, $callback);
         }
-        
-        static function _init() {
-            static::$router = new \Bramus\Router\Router();
+
+        protected static function callErrorRoutes(int $status) {
+            if(!isset(static::$errorRoutes[$status]))
+                throw new Exception("Failed with status code $status.");
+
+            static::$request = new Request([]);
+            static::$response = new Response(static::$request);
+
+            foreach (static::$errorRoutes[$status] as $route) {
+                $route->call();
+            }
         }
     }
-
-    Router::_init();
