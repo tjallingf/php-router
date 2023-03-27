@@ -73,9 +73,22 @@
             if(!is_string($pattern)) return false;
 
             // Replace all curly braces matches {} into word patterns (like Laravel)
-            $pattern = preg_replace('/\/{(.*?)}/', '/(.*?)', $pattern);
+            // and remove trailing and leading slashes.
+            $pattern = trim(preg_replace('/\/{(.*?)}/', '/(.*?)', $pattern), '/');
 
-            $uri_path = parse_url($uri, PHP_URL_PATH);
+            $uri_path = trim(parse_url($uri, PHP_URL_PATH), '/');
+
+            $rewrites = Config::get('routes.rewrite');
+            if(isset($rewrites) && count($rewrites) > 0) {
+                foreach ($rewrites as $from => $to) {
+                    $from = Lib::formatUrlPath(Config::get('routes.basePath').$from, false, false);
+                    $to = Lib::formatUrlPath(Config::get('routes.basePath').$to, false, false);
+                    
+                    // Rewrite the url base if it matches
+                    if(str_starts_with($uri_path, $from.'/') || strlen($uri_path) === strlen($from))
+                        $uri_path = $to.'/'.substr($uri_path, strlen($from)+1);
+                }
+            }
 
             // we may have a match!
             return boolval(preg_match_all('#^' . $pattern . '$#', $uri_path, $matches, PREG_OFFSET_CAPTURE));
