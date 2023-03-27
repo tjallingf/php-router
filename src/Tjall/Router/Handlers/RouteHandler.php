@@ -75,7 +75,9 @@
             // Replace all curly braces matches {} into word patterns (like Laravel)
             $pattern = preg_replace('/\/{(.*?)}/', '/(.*?)', $pattern);
 
+            $uri_path = parse_url($uri, PHP_URL_PATH);
+
             // we may have a match!
-            return boolval(preg_match_all('#^' . $pattern . '$#', $uri, $matches, PREG_OFFSET_CAPTURE));
+            return boolval(preg_match_all('#^' . $pattern . '$#', $uri_path, $matches, PREG_OFFSET_CAPTURE));
         }
     }
