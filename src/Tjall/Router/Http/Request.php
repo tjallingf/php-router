@@ -5,18 +5,19 @@
     use stdClass;
 
     class Request {
-        /* Available for middleware */
+        /* Can be set middleware */
         public $user;
         public stdClass $data;
 
-        public array $body;
-        public array $files;
-        public string $method;
-        public array $params;
-        public array $query;
-        public array $cookies;
+        readonly public array $body;
+        readonly public array $files;
+        readonly public string $method;
+        readonly public array $params;
+        readonly public array $query;
+        readonly public array $cookies;
 
         public function __construct(array $params) {
+            $this->data = new stdClass();
             $this->method = $this->readRequestMethod();
             $this->params = $this->readParams($params);
             $this->files = $this->readFiles();
