@@ -50,11 +50,11 @@
             return $count_handled;
         }
 
-        protected static function getCurrentMethod() : string {
+        public static function getCurrentMethod() : string {
             return trim(strtoupper($_SERVER['REQUEST_METHOD']));
         }
 
-        protected static function getCurrentUri(): string {
+        public static function getCurrentUri(): string {
             return Lib::formatUrlPath($_SERVER['REQUEST_URI']);
         }
         

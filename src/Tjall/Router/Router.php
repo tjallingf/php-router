@@ -13,7 +13,7 @@
 
     class Router {
         protected static array $routes = [];
-        protected static array $errorRoutes = [];
+        public static array $errorRoutes = [];
         public static ?RoutesGroup $currentRoutesGroup = null;
         public static Request $request;
         public static Response $response;
@@ -38,9 +38,8 @@
                 ErrorHandler::handle($e);
             }
 
-            // Throw 404 if no matching route was found
             if(!isset(static::$response))
-                static::callErrorRoutes(Status::NOT_FOUND);
+                ErrorHandler::handle(new Exception("No route found for url '".RouteHandler::getCurrentUri()."'", Status::NOT_FOUND));
 
             static::$response->end();
         }
@@ -97,17 +96,5 @@
 
         static function delete(string $url, callable $callback): void {
             static::match('DELETE', $url, $callback);
-        }
-
-        protected static function callErrorRoutes(int $status) {
-            if(!isset(static::$errorRoutes[$status]))
-                throw new Exception("Failed with status code $status.");
-
-            static::$request = new Request([]);
-            static::$response = new Response(static::$request);
-
-            foreach (static::$errorRoutes[$status] as $route) {
-                $route->call();
-            }
         }
     }

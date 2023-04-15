@@ -36,6 +36,7 @@
         }
 
         public static function formatUrlPath(string $url_path, ?bool $leading_slash = true, ?bool $trailing_slash = false): string {
+            $url_path = str_replace('public', '', $url_path);
             $url_path = trim(Lib::joinPaths($url_path), '/');
             return ($leading_slash ? '/' : '').$url_path.($trailing_slash ? '/' : '');
         }
