@@ -16,17 +16,17 @@
                 Router::$response = new Response(Router::$request);
             }
 
+            Router::$response->status($status);
+
             if(isset(Router::$errorRoutes[$status])) {
                 foreach (Router::$errorRoutes[$status] as $route) {
                     $route->call();
                 }
             } else {  
-                Router::$response
-                    ->status($status)
-                    ->json([ 
-                        'status' => $status, 
-                        'error' => rtrim($message, '.').'.'
-                    ]);
+                Router::$response->json([ 
+                    'status' => $status, 
+                    'error' => rtrim($message, '.').'.'
+                ]);
             }
         }
     }

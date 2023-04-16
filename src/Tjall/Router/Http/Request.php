@@ -19,7 +19,7 @@
         public function __construct(array $params) {
             $this->data = new stdClass();
             $this->method = $this->readRequestMethod();
-            $this->params = $this->readParams($params);
+            $this->params = $params;
             $this->files = $this->readFiles();
             $this->body = $this->readBody();
             $this->query = $this->readQuery();
@@ -46,10 +46,6 @@
 
         protected function readRequestMethod(): string {
             return trim(strtoupper($_SERVER['REQUEST_METHOD']));
-        }
-
-        protected function readParams(array $params): array {
-            return $params;
         }
 
         protected function readFiles() {
