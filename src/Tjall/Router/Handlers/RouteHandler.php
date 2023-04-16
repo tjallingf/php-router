@@ -84,6 +84,9 @@
                 }
             }
 
+            // Only keep the path from the url (remove query etc.).
+            $uri = parse_url($uri, PHP_URL_PATH);
+
             // Check if the rewritten uri matches
             $pattern_parts = explode('/', $pattern);
             $uri_parts = explode('/', $uri);
