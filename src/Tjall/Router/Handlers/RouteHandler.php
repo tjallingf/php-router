@@ -69,7 +69,22 @@
          */
         protected static function patternMatches(string $pattern, string $uri, &$params): bool {
             if(!is_string($pattern)) return false;
-            
+            $params = [];
+
+            // Do some rewrites as specified in config
+            $rewrites = Config::get('routes.rewrite');
+            if(isset($rewrites) && count($rewrites) > 0) {
+                foreach ($rewrites as $from => $to) {
+                    $from = Lib::formatUrlPath(Config::get('routes.basePath').$from, true, false);
+                    $to = Lib::formatUrlPath(Config::get('routes.basePath').$to, true, false);
+                    
+                    // Rewrite the url base if it matches
+                    if(str_starts_with($uri, $from.'/') || strlen($uri) === strlen($from))
+                        $uri = $to.'/'.substr($uri, strlen($from)+1);
+                }
+            }
+
+            // Check if the rewritten uri matches
             $pattern_parts = explode('/', $pattern);
             $uri_parts = explode('/', $uri);
 
@@ -117,25 +132,5 @@
             }
 
             return true;
-
-            // // Replace all curly braces matches {} into word patterns (like Laravel)
-            // // and remove trailing and leading slashes.
-            // $pattern = trim(preg_replace('/\/{(.*?)}/', '/(.*?)', $pattern), '/');
-            // $uri_path = trim(parse_url($uri, PHP_URL_PATH), '/');
-
-            // $rewrites = Config::get('routes.rewrite');
-            // if(isset($rewrites) && count($rewrites) > 0) {
-            //     foreach ($rewrites as $from => $to) {
-            //         $from = Lib::formatUrlPath(Config::get('routes.basePath').$from, false, false);
-            //         $to = Lib::formatUrlPath(Config::get('routes.basePath').$to, false, false);
-                    
-            //         // Rewrite the url base if it matches
-            //         if(str_starts_with($uri_path, $from.'/') || strlen($uri_path) === strlen($from))
-            //             $uri_path = $to.'/'.substr($uri_path, strlen($from)+1);
-            //     }
-            // }
-
-            // we may have a match!
-            // return boolval(preg_match_all('#^' . $pattern . '$#', $uri_path, $matches, PREG_OFFSET_CAPTURE));
         }
     }
