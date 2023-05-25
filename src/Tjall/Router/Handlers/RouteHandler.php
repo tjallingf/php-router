@@ -75,12 +75,12 @@
             $rewrites = Config::get('routes.rewrite');
             if(isset($rewrites) && count($rewrites) > 0) {
                 foreach ($rewrites as $from => $to) {
-                    $from = Lib::formatUrlPath(Config::get('routes.basePath').$from, true, false);
-                    $to = Lib::formatUrlPath(Config::get('routes.basePath').$to, true, false);
-                    
+                    $from = Lib::formatUrlPath(Lib::joinPaths(Config::get('routes.basePath'), $from), true, false);
+                    $to = Lib::formatUrlPath(Lib::joinPaths(Config::get('routes.basePath'), $to), true, false);
+
                     // Rewrite the url base if it matches
                     if(str_starts_with($uri, $from.'/') || strlen($uri) === strlen($from))
-                        $uri = $to.'/'.substr($uri, strlen($from)+1);
+                        $uri = Lib::joinPaths($to, substr($uri, strlen($from)+1));
                 }
             }
 
