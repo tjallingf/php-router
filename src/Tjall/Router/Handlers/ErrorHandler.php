@@ -7,7 +7,11 @@
     use Tjall\Router\Http\Response;
 
     class ErrorHandler {
-        public static function handle(\Exception $e) {
+        public static function handle($e) {
+            if(!is_a($e, Exception::class)) {
+                return;
+            }
+
             $status = ($e->getCode() > 0 ? $e->getCode() : Status::INTERNAL_SERVER_ERROR);
             $message = $e->getMessage() ?? 'An unknown error occured.';
 
