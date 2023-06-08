@@ -16,8 +16,7 @@
         protected static function includeDev() {
             $input = basename(Config::get('vite.input'));
             $port = Config::get('vite.devPort');
-            $addr = $_SERVER['SERVER_ADDR'] ?? $_SERVER['LOCAL_ADDR'];
-            $host = "$addr:$port";
+            $host = "http://localhost:$port";
 
             $html_snippet = <<<HTML
                 <script type="module">
