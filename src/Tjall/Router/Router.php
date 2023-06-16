@@ -38,10 +38,16 @@
                 ErrorHandler::handle($e);
             }
 
-            if(!isset(static::$response))
-                ErrorHandler::handle(new Exception("No route found for url '".RouteHandler::getCurrentUri()."'", Status::NOT_FOUND));
+            if(!isset(static::$response)) {
+                ErrorHandler::handle(new RouteException("No route found for url '".RouteHandler::getCurrentUri()."'", Status::NOT_FOUND));
+            }
 
-            static::$response->end();
+            if(isset(static::$response)) {
+                static::$response->end();
+            } else {
+                throw new Exception('Failed to end response.');
+            }
+
         }
 
         static function url(string $url) {

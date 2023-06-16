@@ -7,5 +7,8 @@
         "psr-4": {
             "Tjall\\Router\\": "src/Tjall/Router"
         }
+    },
+    "require": {
+        "jenssegers/blade": "^1.4"
     }
 }

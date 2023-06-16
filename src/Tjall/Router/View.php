@@ -3,46 +3,41 @@
 
     use Tjall\Router\Config;
     use Tjall\Router\Lib;
-    use Tjall\Router\Context;
-    use Exception;
+    use Jenssegers\Blade\Blade;
 
     class View {
-        public string $filepath;
+        public string $name;
         public array $context;
 
-        function __construct(string $filepath, array $context) {
-            $this->filepath = $filepath;
+        function __construct(string $name, array $context) {
+            $this->name = $name;
             $this->context = $context;
         }
         
         static function get(string $name, ?array $context = []) {
-            $dir = Lib::joinPaths(Config::get('rootDir'), Config::get('views.dir'));
-            $pattern = Lib::joinPaths($dir, $name.'.{'.join(',', static::FILE_EXTENSIONS).'}');
+            return new static($name, $context);
+        }
 
-            $filepath = @realpath(glob($pattern, GLOB_BRACE)[0] ?? '');
-            if(!$filepath || !is_file($filepath))
-                throw new Exception("Cannot find view '$name' in directory '$dir'.");
+        protected function getBladeRenderer() {
+            $blade_dir = Lib::joinPaths(Config::get('rootDir'), Config::get('blade.dir'));
+            $cache_dir = Lib::joinPaths(Config::get('rootDir'), 'cache/views');
+            $blade = new Blade($blade_dir, $cache_dir);
 
-            return new static($filepath, $context);
+            $blade->directive('translate', function ($expression, $variables = null) {
+                return "<?php echo(App\Locale::format($expression, $variables)); ?>";
+            });
+
+            $blade->directive('vite', function () {
+                $a = \Tjall\Router\Vite::include();
+                return "<?php echo(\Tjall\Router\Vite::include()); ?>";
+            });
+
+            return $blade;
         }
 
         function render() {
-            $file_extension = pathinfo($this->filepath, PATHINFO_EXTENSION);
-
-            switch($file_extension) {
-                case 'php':
-                    Context::store($this->context);
-                    $result = (function() {
-                        ob_start();
-                        include($this->filepath);
-                        return ob_get_clean();
-                    })();
-                    Context::clear();
-
-                    return $result;
-                default:
-                    return file_get_contents($this->filepath);
-            }
+            $blade = self::getBladeRenderer();
+            return $blade->make('views.'.$this->name, $this->context)->render();
         }
 
         const FILE_EXTENSIONS = [ 'html', 'php' ];

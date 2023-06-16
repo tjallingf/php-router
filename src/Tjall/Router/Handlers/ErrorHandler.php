@@ -5,6 +5,8 @@
     use Tjall\Router\Http\Status;
     use Tjall\Router\Http\Request;
     use Tjall\Router\Http\Response;
+    use Exception;
+    use Tjall\Router\RouteException;
 
     class ErrorHandler {
         public static function handle($e) {
@@ -12,9 +14,12 @@
                 return;
             }
 
-            $status = ($e->getCode() > 0 ? $e->getCode() : Status::INTERNAL_SERVER_ERROR);
+            $status = 500;
             $message = $e->getMessage() ?? 'An unknown error occured.';
-
+            if(is_a($e, RouteException::class)) {
+                $status = $e->status;
+            }
+            
             if(!isset(Router::$response)) {       
                 Router::$request = new Request([]);
                 Router::$response = new Response(Router::$request);
