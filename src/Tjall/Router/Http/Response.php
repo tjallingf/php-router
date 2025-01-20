@@ -85,14 +85,15 @@
             return $this;
         }
 
-        function end(): void {
-            if(headers_sent())
-                throw new Exception('Failed to end response because body was already sent.');
-
+        function end(): bool {
+            if(headers_sent()) return false;
+            
             $this->endStatus();
             $this->endHeaders();
             $this->endCookies();
             $this->endBody();
+
+            return true;
         }
 
         protected function endStatus(): void {

@@ -23,6 +23,11 @@
             // Store config
             Config::store($config);
 
+            // Connect to database
+            if(Config::get('database.hostname')) {
+                Database::connect();
+            }
+
             // Load routes
             $routes_dir = Lib::joinPaths(Config::get('rootDir'), Config::get('routes.dir'));
             Lib::requireAll($routes_dir);

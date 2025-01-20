@@ -29,7 +29,11 @@
         }
 
         protected function setData(array $data) {
-            $this->data = (object) $data;
+            if(!isset($this->data)) {
+                $this->data = (object) $data;
+            } else {
+                $this->data = (object) array_replace((array) $this->data, $data);
+            }
         }
 
         protected static function dir() {
@@ -52,20 +56,19 @@
         }
 
         public static function create($id, array $data) {
-            Storage::set([static::dir(), $id], $data);
-            return static::find($id);
+            Storage::set([static::dir(), $id], []);
+            $model = static::find($id);
+            $model->update($data);
+            return $model;
         }
 
         static function findFromRequest($req) {
-            $model = static::find(urldecode($req->params['id']));
-            if(!$model) throw new RouteException('Not found.', 404);
-
-            return $model;
+            return static::find(urldecode($req->params['id']));
         }
 
         static function find($id) {
             $data = Storage::get([static::dir(), $id]);
-            if(!$data) return null;
+            if($data === null) throw new RouteException("Model '{$id}' not found.", 404);
             return new static($id, $data);
         }
     }
